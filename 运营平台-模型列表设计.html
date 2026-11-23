@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小米算力平台-OPS · 模型列表</title>
+<style>
+  :root {
+    --color-primary: #2F7BFF;
+    --color-primary-hover: #1F6AEE;
+    --color-primary-soft: #E4EEFD;
+    --color-bg-app: #FAFAFB;
+    --color-bg-sidebar: #F5F6F8;
+    --color-surface: #FFFFFF;
+    --color-border: #E8EAEE;
+    --color-border-row: #EEF0F3;
+    --color-text-primary: #1F2329;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9AA0A9;
+    --color-danger: #E5484D;
+    --color-danger-soft: #FDECEC;
+    --color-success: #16A34A;
+    --color-success-soft: #E6F7EE;
+    --color-track: #EEF0F3;
+    --chart-blue: #3B82F6;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.04);
+    --shadow-dialog: 0 12px 48px rgba(16,24,40,0.16);
+    --font-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 22px;
+    color: var(--color-text-primary);
+    background: var(--color-bg-app);
+    -webkit-font-smoothing: antialiased;
+  }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ---------- App shell ---------- */
+  .app { display: flex; height: 100vh; min-height: 620px; }
+  .sidebar {
+    width: 200px; flex: none;
+    background: var(--color-bg-sidebar);
+    border-right: 1px solid var(--color-border);
+    padding: 20px 12px;
+    display: flex; flex-direction: column;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: var(--radius-md);
+    background: var(--color-primary); color: #fff;
+    display: grid; place-items: center; font-weight: 600; font-size: 13px;
+  }
+  .brand-name { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 12px; color: var(--color-text-tertiary); }
+
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item {
+    height: 32px; display: flex; align-items: center; gap: 10px;
+    padding: 0 12px; border-radius: var(--radius-md);
+    color: var(--color-text-primary); text-align: left; width: 100%;
+    transition: background-color 150ms ease;
+  }
+  .nav-item:hover { background: #ECEEF2; }
+  .nav-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-group-label {
+    font-size: 12px; color: var(--color-text-tertiary);
+    padding: 16px 12px 6px;
+  }
+  .sidebar-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--color-border); }
+  .account-name { font-size: 13px; font-weight: 500; }
+  .account-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .logout { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); }
+
+  .main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 48px 48px; }
+
+  /* ---------- Header ---------- */
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+  .crumb { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
+  .page-title { font-size: 20px; font-weight: 600; line-height: 28px; }
+  .head-actions { display: flex; align-items: center; gap: 16px; }
+
+  .preview-switch {
+    display: inline-flex; padding: 2px; border-radius: var(--radius-pill);
+    background: #ECEEF2; font-size: 12px;
+  }
+  .preview-switch button {
+    height: 26px; padding: 0 12px; border-radius: var(--radius-pill); color: var(--color-text-secondary);
+  }
+  .preview-switch button.on { background: var(--color-surface); color: var(--color-text-primary); box-shadow: 0 1px 2px rgba(16,24,40,0.08); font-weight: 500; }
+
+  .btn {
+    height: 36px; padding: 0 16px; border-radius: var(--radius-md);
+    font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px;
+    transition: background-color 150ms ease;
+  }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-primary:hover { background: var(--color-primary-hover); }
+  .btn-ghost { background: #F2F3F5; color: var(--color-text-primary); }
+  .btn-ghost:hover { background: #E7E9ED; }
+  .btn-link { height: 30px; padding: 0 8px; color: var(--color-primary); font-size: 13px; border-radius: var(--radius-md); }
+  .btn-link:hover { background: var(--color-primary-soft); }
+  .btn-link.danger { color: var(--color-danger); }
+  .btn-link.danger:hover { background: var(--color-danger-soft); }
+
+  /* ---------- Flow strip ---------- */
+  .flow {
+    background: var(--color-surface); border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-card);
+    padding: 16px 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    margin-bottom: 16px;
+  }
+  .flow-steps { display: flex; align-items: center; gap: 8px; }
+  .step {
+    height: 26px; padding: 0 10px; border-radius: var(--radius-sm);
+    font-size: 12px; display: inline-flex; align-items: center;
+    background: #F2F3F5; color: var(--color-text-secondary);
+  }
+  .step.s-up { background: #EAF2FF; color: #2F7BFF; }
+  .step.s-check { background: #FEF3C7; color: #B45309; }
+  .step.s-wait { background: #EDE9FE; color: #6D28D9; }
+  .step.s-on { background: var(--color-success-soft); color: var(--color-success); }
+  .arrow { color: var(--color-text-tertiary); font-size: 12px; }
+  .flow-rule { font-size: 12px; color: var(--color-text-secondary); flex: 1; min-width: 280px; }
+  .flow-rule strong { color: var(--color-text-primary); font-weight: 500; }
+
+  /* ---------- Stat cards ---------- */
+  .stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat {
+    background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+    padding: 14px 16px; text-align: left; border: 1px solid transparent;
+    transition: border-color 150ms ease, background-color 150ms ease;
+  }
+  .stat:hover { border-color: var(--color-border); }
+  .stat.active { border-color: var(--color-primary); background: #FBFDFF; }
+  .stat-label { font-size: 12px; color: var(--color-text-secondary); display: flex; align-items: center; gap: 6px; }
+  .stat-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .stat-value { font-size: 20px; font-weight: 600; line-height: 28px; margin-top: 4px; }
+  .stat-value small { font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); margin-left: 2px; }
+
+  /* ---------- Panel / filters / table ---------- */
+  .panel {
+    background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card);
+    overflow: hidden;
+  }
+  .filters {
+    display: flex; align-items: center; gap: 12px; padding: 16px 20px;
+    border-bottom: 1px solid var(--color-border-row);
+  }
+  .select, .search {
+    height: 36px; border-radius: var(--radius-md); border: 1px solid var(--color-border);
+    background: #fff; padding: 0 12px; font-size: 14px; outline: none;
+  }
+  .select { min-width: 140px; color: var(--color-text-primary); }
+  .select:focus, .search input:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(47,123,255,0.12); }
+  .search { display: flex; align-items: center; gap: 8px; width: 260px; }
+  .search input { border: 0; outline: none; flex: 1; height: 100%; background: transparent; }
+  .search input::placeholder { color: var(--color-text-tertiary); }
+  .search svg { width: 16px; height: 16px; color: var(--color-text-tertiary); flex: none; }
+  .filter-spacer { flex: 1; }
+  .filter-summary { font-size: 12px; color: var(--color-text-tertiary); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary);
+    height: 40px; padding: 0 16px; background: #FAFBFC; border-bottom: 1px solid var(--color-border-row);
+    white-space: nowrap;
+  }
+  td {
+    height: 56px; padding: 8px 16px; border-bottom: 1px solid var(--color-border-row);
+    vertical-align: middle; white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: #FAFBFC; }
+  .model-name { font-weight: 500; }
+  .model-id { font-size: 12px; color: var(--color-text-tertiary); }
+  .muted { color: var(--color-text-secondary); }
+  .ops { display: flex; gap: 4px; justify-content: flex-start; }
+
+  .tag {
+    height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .tag.up { background: #EAF2FF; color: #2F7BFF; }
+  .tag.check { background: #FEF3C7; color: #B45309; }
+  .tag.wait { background: #EDE9FE; color: #6D28D9; }
+  .tag.on { background: var(--color-success-soft); color: var(--color-success); }
+  .tag.fail { background: var(--color-danger-soft); color: var(--color-danger); }
+  .progress { margin-top: 4px; width: 80px; height: 3px; background: var(--color-track); border-radius: var(--radius-pill); overflow: hidden; }
+  .progress span { display: block; height: 100%; background: #2F7BFF; border-radius: inherit; }
+
+  .type-chip {
+    height: 20px; padding: 0 8px; border-radius: 4px; font-size: 12px;
+    background: var(--color-primary-soft); color: var(--color-primary); display: inline-flex; align-items: center;
+  }
+
+  .empty { padding: 56px 24px 64px; text-align: center; }
+  .empty-art {
+    width: 56px; height: 56px; margin: 0 auto 16px; border-radius: var(--radius-lg);
+    background: var(--color-primary-soft); display: grid; place-items: center; color: var(--color-primary);
+  }
+  .empty-art svg { width: 26px; height: 26px; }
+  .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .empty-desc { font-size: 13px; color: var(--color-text-secondary); max-width: 420px; margin: 0 auto 20px; }
+  .empty-note { font-size: 12px; color: var(--color-text-tertiary); margin-top: 12px; }
+
+  .no-match { padding: 40px 24px; text-align: center; color: var(--color-text-secondary); font-size: 13px; }
+  .no-match button { color: var(--color-primary); margin-left: 8px; }
+
+  .table-foot {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 12px 20px; border-top: 1px solid var(--color-border-row); font-size: 12px; color: var(--color-text-tertiary);
+  }
+
+  /* ---------- Upload dialog ---------- */
+  .dlg-mask {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.35);
+    display: grid; place-items: center; padding: 24px;
+    opacity: 0; pointer-events: none; transition: opacity 200ms ease;
+    z-index: 50;
+  }
+  .dlg-mask.open { opacity: 1; pointer-events: auto; }
+  .dialog {
+    width: 640px; max-width: 100%;
+    max-height: min(600px, 80vh);
+    background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-dialog);
+    display: flex; flex-direction: column; overflow: hidden;
+    transform: translateY(8px); transition: transform 200ms ease;
+  }
+  .dlg-mask.open .dialog { transform: translateY(0); }
+
+  .dlg-head {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 16px;
+    padding: 20px 24px 16px; border-bottom: 1px solid var(--color-border-row); flex: none;
+  }
+  .dlg-title { font-size: 18px; font-weight: 600; line-height: 26px; }
+  .dlg-sub { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: var(--radius-md); display: grid; place-items: center; color: var(--color-text-secondary); flex: none; }
+  .icon-btn:hover { background: #ECEEF2; }
+  .icon-btn svg { width: 16px; height: 16px; }
+
+  .dlg-body { flex: 1; overflow-y: auto; min-height: 0; }
+
+  .sec { padding: 20px 24px; border-bottom: 1px solid var(--color-border-row); }
+  .sec:last-child { border-bottom: 0; }
+  .sec-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 14px; }
+  .sec-no { font-size: 12px; color: var(--color-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .sec-title { font-size: 14px; font-weight: 600; }
+  .sec-desc { font-size: 12px; color: var(--color-text-tertiary); }
+
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .full { grid-column: 1 / -1; }
+
+  .f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .f > label, .f > .lbl { font-size: 13px; font-weight: 500; }
+  .req { color: var(--color-danger); margin-right: 2px; }
+  .hint { font-size: 12px; color: var(--color-text-tertiary); line-height: 18px; }
+  .err { display: none; font-size: 12px; color: var(--color-danger); line-height: 18px; }
+  .f.invalid .err { display: block; }
+  .f.invalid input, .f.invalid select, .f.invalid textarea { border-color: var(--color-danger); }
+  .f.invalid .dropzone { border-color: var(--color-danger); }
+
+  .f input, .f select, .f textarea {
+    width: 100%; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--color-border);
+    background: #fff; padding: 0 12px; outline: none; font-size: 14px;
+    transition: border-color 150ms ease, box-shadow 150ms ease;
+  }
+  .f textarea { height: 72px; padding: 8px 12px; resize: vertical; line-height: 20px; }
+  .f input::placeholder, .f textarea::placeholder { color: var(--color-text-tertiary); }
+  .f input:focus, .f select:focus, .f textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(47,123,255,0.12); }
+  .f input:disabled, .f select:disabled { background: #F5F6F8; color: var(--color-text-tertiary); cursor: not-allowed; }
+  .f input[readonly] { background: #F5F6F8; color: var(--color-text-secondary); }
+  .f input[type=number] { font-variant-numeric: tabular-nums; }
+  .f select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%239AA0A9' stroke-width='1.5'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; padding-right: 32px; }
+
+  /* Dropzone */
+  .dropzone {
+    border: 1px dashed #C9CED6; border-radius: var(--radius-lg); background: #FAFBFC;
+    padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  }
+  .dropzone-text .t { font-size: 14px; font-weight: 500; }
+  .dropzone-text .d { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .dropzone-actions { display: flex; gap: 8px; flex: none; }
+  .link-btn {
+    height: 30px; padding: 0 12px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-primary);
+    background: #fff; border: 1px solid var(--color-border);
+  }
+  .link-btn:hover { background: var(--color-primary-soft); border-color: transparent; }
+
+  .file-box {
+    display: none; margin-top: 10px; padding: 12px 14px; border-radius: var(--radius-md);
+    background: #F5F6F8; font-size: 12px;
+  }
+  .file-box.show { display: block; }
+  .file-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+  .file-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-meta { color: var(--color-text-tertiary); flex: none; }
+  .bar { height: 4px; border-radius: var(--radius-pill); background: var(--color-track); margin: 8px 0 6px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--chart-blue); border-radius: inherit; transition: width 80ms linear; }
+  .sha-line { color: var(--color-text-secondary); }
+  .sha-line code { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--color-text-primary); }
+
+  /* Chips (multi-select) */
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    height: 28px; padding: 0 12px; border-radius: var(--radius-pill); font-size: 12px;
+    background: #fff; border: 1px solid var(--color-border); color: #4B5563;
+    transition: background-color 150ms ease;
+  }
+  .chip:hover { background: #F5F6F8; }
+  .chip.on { background: var(--color-primary-soft); border-color: transparent; color: var(--color-primary); font-weight: 500; }
+
+  /* Segmented */
+  .seg { display: inline-flex; padding: 2px; border-radius: var(--radius-pill); background: #ECEEF2; height: 36px; width: 100%; }
+  .seg button { flex: 1; border-radius: var(--radius-pill); font-size: 13px; color: var(--color-text-secondary); }
+  .seg button.on { background: #fff; color: var(--color-text-primary); font-weight: 500; box-shadow: 0 1px 2px rgba(16,24,40,0.08); }
+
+  /* Machine rows */
+  .mlist { display: flex; flex-direction: column; gap: 8px; }
+  .mlist:empty::before { content: "尚未添加"; font-size: 12px; color: var(--color-text-tertiary); padding: 10px 12px; background: #F5F6F8; border-radius: var(--radius-md); }
+  .mrow { display: grid; grid-template-columns: auto 1fr 1fr 28px; gap: 10px; align-items: center; }
+  .mrow.norec { grid-template-columns: 1fr 1fr 28px; }
+  .mrow select { height: 36px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: #fff; padding: 0 28px 0 12px; appearance: none; outline: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%239AA0A9' stroke-width='1.5'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; }
+  .mrow select:focus { border-color: var(--color-primary); }
+  .radio { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); white-space: nowrap; cursor: pointer; }
+  .radio input { accent-color: var(--color-primary); width: 14px; height: 14px; margin: 0; }
+  .x { width: 28px; height: 28px; border-radius: var(--radius-md); color: var(--color-text-tertiary); font-size: 16px; line-height: 1; }
+  .x:hover { background: var(--color-danger-soft); color: var(--color-danger); }
+  .add-btn {
+    margin-top: 10px; height: 32px; padding: 0 12px; border-radius: var(--radius-md);
+    background: #F2F3F5; font-size: 13px; color: var(--color-text-primary);
+  }
+  .add-btn:hover { background: #E7E9ED; }
+  .sub-title { font-size: 13px; font-weight: 500; margin-bottom: 8px; }
+  .sub-block + .sub-block { margin-top: 18px; }
+
+  /* Dialog footer */
+  .dlg-foot {
+    flex: none; padding: 14px 24px; border-top: 1px solid var(--color-border-row);
+    display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff;
+  }
+  .err-sum { font-size: 12px; color: var(--color-danger); display: none; }
+  .err-sum.show { display: block; }
+  .foot-actions { display: flex; gap: 8px; margin-left: auto; }
+
+  .toast {
+    position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px);
+    background: var(--color-text-primary); color: #fff; font-size: 13px;
+    padding: 10px 16px; border-radius: var(--radius-md); opacity: 0; transition: all 200ms ease; pointer-events: none;
+    z-index: 60;
+  }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">MI</div>
+      <div>
+        <div class="brand-name">小米算力平台-OPS</div>
+        <div class="brand-sub">运营控制台</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+        模型
+      </button>
+    </nav>
+
+    <div class="nav-group-label">业务</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+        推理引擎
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h12M4 10h12M4 15h8"/></svg>
+        元数据
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h6l3 3v11H6z"/><path d="M8 10h5M8 13h4"/></svg>
+        使用日志
+      </button>
+    </nav>
+
+    <div class="nav-group-label">管控</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 10.5l3 3 7-7"/></svg>
+        审批
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg>
+        用户
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3l6 2.5v4.5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5.5z"/></svg>
+        角色权限
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="account-name">系统管理员</div>
+      <div class="account-meta">admin · 本地</div>
+      <button class="logout nav-item" style="padding:0 0; height:28px;">退出</button>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <div class="crumb">模型管理 / 模型列表</div>
+        <h1 class="page-title">模型列表</h1>
+      </div>
+      <div class="head-actions">
+        <div class="preview-switch" role="group" aria-label="预览数据">
+          <button id="sw-empty" class="on">空数据</button>
+          <button id="sw-data">示例数据</button>
+        </div>
+        <button class="btn btn-primary" id="openUpload">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v10M2 7h10"/></svg>
+          上传模型
+        </button>
+      </div>
+    </header>
+
+    <!-- Flow strip -->
+    <section class="flow">
+      <div class="flow-steps">
+        <span class="step s-up">上传中</span>
+        <span class="arrow">→</span>
+        <span class="step s-check">校验中</span>
+        <span class="arrow">→</span>
+        <span class="step s-wait">待上架</span>
+        <span class="arrow">→</span>
+        <span class="step s-on">已上架</span>
+      </div>
+      <div class="flow-rule">
+        <strong>上传前</strong>在浏览器计算 sha256；<strong>校验中</strong>核对对象大小与文件头，可终止或删除；失败模型可查看原因后重试或删除。
+      </div>
+    </section>
+
+    <!-- Stat cards: overview + filter shortcut -->
+    <section class="stats" id="stats"></section>
+
+    <!-- List panel -->
+    <section class="panel">
+      <div class="filters">
+        <select class="select" id="fType" aria-label="模型类型">
+          <option value="">模型类型：全部</option>
+          <option>语言模型</option>
+          <option>视觉语言</option>
+          <option>语音识别</option>
+          <option>语音合成</option>
+          <option>文本嵌入</option>
+        </select>
+        <select class="select" id="fStatus" aria-label="状态">
+          <option value="">状态：全部</option>
+          <option value="up">上传中</option>
+          <option value="check">校验中</option>
+          <option value="wait">待上架</option>
+          <option value="on">已上架</option>
+          <option value="fail">失败</option>
+        </select>
+        <label class="search">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+          <input id="fQuery" type="text" placeholder="搜索模型名称或唯一标识">
+        </label>
+        <span class="filter-spacer"></span>
+        <span class="filter-summary" id="summary"></span>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:20%">模型</th>
+            <th>类型</th>
+            <th>版本</th>
+            <th>客户端</th>
+            <th>状态</th>
+            <th>大小</th>
+            <th>适用机型</th>
+            <th>更新</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+
+      <div class="table-foot" id="foot"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Upload dialog -->
+<div class="dlg-mask" id="dlgMask">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="dlgTitle">
+    <header class="dlg-head">
+      <div>
+        <div class="dlg-title" id="dlgTitle">上传模型</div>
+        <div class="dlg-sub">提交后进入「上传中」，校验通过后进入「待上架」</div>
+      </div>
+      <button class="icon-btn" id="closeBtn" aria-label="关闭">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+
+    <div class="dlg-body" id="dlgBody">
+
+      <!-- 01 文件 -->
+      <section class="sec" data-sec="file">
+        <div class="sec-head"><span class="sec-no">01</span><span class="sec-title">模型文件</span><span class="sec-desc">单个文件或整个目录，上传前计算完整 sha256</span></div>
+        <div class="f" data-key="file">
+          <div class="dropzone">
+            <div class="dropzone-text">
+              <div class="t">选择模型文件或整个目录</div>
+              <div class="d">大文件将分片上传，失败后可断点续传</div>
+            </div>
+            <div class="dropzone-actions">
+              <button type="button" class="link-btn" data-pick="file">选择文件</button>
+              <button type="button" class="link-btn" data-pick="dir">选择目录</button>
+            </div>
+          </div>
+          <div class="file-box" id="fileBox">
+            <div class="file-row"><span class="file-name" id="fileName"></span><span class="file-meta" id="fileSize"></span></div>
+            <div class="bar"><span id="fileBar"></span></div>
+            <div class="sha-line" id="shaLine">计算 sha256 中… 0%</div>
+          </div>
+          <span class="err">请选择模型文件或目录，并等待 sha256 计算完成</span>
+        </div>
+      </section>
+
+      <!-- 02 模型信息 -->
+      <section class="sec" data-sec="meta">
+        <div class="sec-head"><span class="sec-no">02</span><span class="sec-title">模型信息</span><span class="sec-desc">用于列表展示与客户端分类</span></div>
+        <div class="grid">
+          <div class="f" data-key="name">
+            <label><span class="req">*</span>模型名称</label>
+            <input id="name" type="text" placeholder="例如 Qwen3.6-35B-A3B">
+            <span class="err">请输入模型名称</span>
+          </div>
+          <div class="f" data-key="version">
+            <label><span class="req">*</span>版本号</label>
+            <input id="version" type="text" placeholder="1.0.0">
+            <span class="hint">语义化版本，须高于同名模型已有版本</span>
+            <span class="err">请输入语义化版本，例如 1.4.0</span>
+          </div>
+          <div class="f" data-key="vendor">
+            <label><span class="req">*</span>厂商</label>
+            <input id="vendor" type="text" placeholder="例如 Alibaba">
+            <span class="err">请输入厂商</span>
+          </div>
+          <div class="f" data-key="type">
+            <label><span class="req">*</span>模型类型</label>
+            <select id="type">
+              <option value="">请选择</option>
+              <option>语言模型</option>
+              <option>视觉语言</option>
+              <option>语音识别</option>
+              <option>语音合成</option>
+              <option>文本嵌入</option>
+            </select>
+            <span class="err">请选择模型类型</span>
+          </div>
+          <div class="f" data-key="params">
+            <label><span class="req">*</span>参数规模</label>
+            <input id="params" type="text" placeholder="例如 7B">
+            <span class="err">请输入参数规模</span>
+          </div>
+          <div class="f">
+            <label>排序</label>
+            <input id="sort" type="number" value="0">
+            <span class="hint">控制商店与客户端中的展示次序</span>
+          </div>
+          <div class="f full" data-key="introZh">
+            <label><span class="req">*</span>模型介绍（中文）</label>
+            <textarea id="introZh" placeholder="面向客户端展示的简体中文介绍；没有译文时作为回落文案"></textarea>
+            <span class="err">请填写中文模型介绍</span>
+          </div>
+          <div class="f full">
+            <label>模型介绍（English）</label>
+            <textarea id="introEn" placeholder="可选；缺失时回落到中文介绍"></textarea>
+          </div>
+          <div class="f full" data-key="tags">
+            <label><span class="req">*</span>标签</label>
+            <div class="chips" data-group="tags">
+              <button type="button" class="chip" data-val="文档">文档</button>
+              <button type="button" class="chip" data-val="编程">编程</button>
+              <button type="button" class="chip" data-val="论文">论文</button>
+              <button type="button" class="chip" data-val="语音播客">语音播客</button>
+              <button type="button" class="chip" data-val="通用问答">通用问答</button>
+              <button type="button" class="chip" data-val="会议纪要">会议纪要</button>
+              <button type="button" class="chip" data-val="多模态">多模态</button>
+            </div>
+            <span class="err">请至少选择一个标签</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 03 推理配置 -->
+      <section class="sec" data-sec="infer">
+        <div class="sec-head"><span class="sec-no">03</span><span class="sec-title">推理配置</span><span class="sec-desc">决定模型能否被正确加载运行</span></div>
+        <div class="grid">
+          <div class="f" data-key="engine">
+            <label><span class="req">*</span>推理引擎</label>
+            <select id="engine">
+              <option value="">请选择</option>
+              <option>OpenVINO</option>
+              <option>ONNX Runtime</option>
+            </select>
+            <span class="err">请选择推理引擎</span>
+          </div>
+          <div class="f" data-key="clientMin">
+            <label><span class="req">*</span>客户端最低版本</label>
+            <select id="clientMin">
+              <option value="">请选择</option>
+              <option>1.0.0</option>
+              <option>1.2.0</option>
+              <option>2.0.0</option>
+            </select>
+            <span class="err">请选择客户端最低版本</span>
+          </div>
+          <div class="f" data-key="engineMin">
+            <label><span class="req">*</span>引擎最低版本</label>
+            <select id="engineMin" disabled></select>
+            <span class="hint" id="engineMinHint">先选择客户端最低版本与推理引擎</span>
+            <span class="err">请选择引擎最低版本</span>
+          </div>
+          <div class="f" data-key="quant">
+            <label><span class="req">*</span>量化参数</label>
+            <input id="quant" type="text" placeholder="例如 Q4_K_M">
+            <span class="err">请输入量化参数</span>
+          </div>
+          <div class="f" data-key="ctx">
+            <label><span class="req">*</span>上下文长度</label>
+            <input id="ctx" type="number" value="8192">
+            <span class="hint">写入模型清单，已上架后不能修改</span>
+            <span class="err">请输入大于 0 的上下文长度</span>
+          </div>
+          <div class="f" data-key="mem">
+            <label><span class="req">*</span>最低内存（GB）</label>
+            <input id="mem" type="number" value="16">
+            <span class="hint">加载该模型所需的最小内存，用于可运行性判断</span>
+            <span class="err">请输入大于 0 的最低内存</span>
+          </div>
+          <div class="f">
+            <label>文件格式</label>
+            <input type="text" value="由推理平台决定" readonly>
+          </div>
+          <div class="f">
+            <label><span class="req">*</span>运行设备</label>
+            <div class="seg" id="device">
+              <button type="button" class="on" data-val="GPU">GPU</button>
+              <button type="button" data-val="NPU">NPU</button>
+            </div>
+          </div>
+          <div class="f full" data-key="range">
+            <label><span class="req">*</span>推理强度范围</label>
+            <div class="chips" data-group="range">
+              <button type="button" class="chip" data-val="关">关</button>
+              <button type="button" class="chip" data-val="低">低</button>
+              <button type="button" class="chip" data-val="中">中</button>
+              <button type="button" class="chip" data-val="高">高</button>
+              <button type="button" class="chip" data-val="超高">超高</button>
+              <button type="button" class="chip" data-val="极高">极高</button>
+              <button type="button" class="chip" data-val="自动">自动</button>
+            </div>
+            <span class="hint">「关」与「自动」互斥，二者不能同时选择</span>
+            <span class="err">请至少选择一个推理强度</span>
+          </div>
+          <div class="f" data-key="recommended">
+            <label><span class="req">*</span>推荐推理强度</label>
+            <select id="recommended">
+              <option value="">请先选择推理强度范围</option>
+            </select>
+            <span class="hint">商店推荐档，须在推理强度范围内</span>
+            <span class="err">请选择推荐推理强度</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 04 机型 -->
+      <section class="sec" data-sec="machine">
+        <div class="sec-head"><span class="sec-no">04</span><span class="sec-title">机型</span><span class="sec-desc">可选，用于推荐与适用声明</span></div>
+
+        <div class="sub-block">
+          <div class="sub-title">推荐机型</div>
+          <div class="mlist" id="recList"></div>
+          <button type="button" class="add-btn" data-add="rec">添加推荐机型</button>
+          <div class="hint" style="margin-top:6px">客户端按此配置向设备推荐模型，每个模型仅可设置一个默认推荐</div>
+        </div>
+
+        <div class="sub-block">
+          <div class="sub-title">适用机型</div>
+          <div class="mlist" id="appList"></div>
+          <button type="button" class="add-btn" data-add="app">添加机型</button>
+        </div>
+      </section>
+    </div>
+
+    <footer class="dlg-foot">
+      <span class="err-sum" id="errSum"></span>
+      <div class="foot-actions">
+        <button type="button" class="btn btn-ghost" id="cancelBtn">取消</button>
+        <button type="button" class="btn btn-primary" id="submitBtn">上传并校验</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ---- Mock data (示例) ----
+  const STATUS = {
+    up:    { label: '上传中', cls: 'up' },
+    check: { label: '校验中', cls: 'check' },
+    wait:  { label: '待上架', cls: 'wait' },
+    on:    { label: '已上架', cls: 'on' },
+    fail:  { label: '失败',   cls: 'fail' }
+  };
+  const ACTIONS = {
+    up:    [['查看进度'], ['取消', 'danger']],
+    check: [['终止'], ['删除', 'danger']],
+    wait:  [['上架'], ['删除', 'danger']],
+    on:    [['详情'], ['下架']],
+    fail:  [['查看原因'], ['重试'], ['删除', 'danger']]
+  };
+
+  const MODELS = [
+    { name: 'Qwen3.6-35B-A3B', id: 'qwen3.6-35b-a3b', type: '语言模型', ver: '2026.5.0', client: 'windows/amd64', st: 'on',    size: '22.1 GB', machine: '旗舰（大核显）', upd: '2026-11-18 10:22', prog: 100 },
+    { name: 'Edge-TTS-X',     id: 'edge-tts-x',      type: '语音合成', ver: '1.2.0',     client: 'windows/amd64', st: 'wait',  size: '1.2 GB',  machine: '主流 24G',      upd: '2026-11-19 16:05', prog: 100 },
+    { name: 'Qwen3.5-9B',     id: 'qwen3.5-9b',      type: '语言模型', ver: '2026.3.1',  client: 'macos/arm64',   st: 'check', size: '5.4 GB',  machine: '主流 32G',      upd: '2026-11-20 09:41', prog: 100 },
+    { name: 'FastContext-1.0',id: 'fastcontext-1.0', type: '语言模型', ver: '1.0.0',     client: 'windows/amd64', st: 'up',    size: '2.5 GB',  machine: '入门 16G',      upd: '2026-11-20 09:12', prog: 46 },
+    { name: 'Granite-4.1-30B',id: 'granite-4.1-30b', type: '语言模型', ver: '4.1.0',     client: 'windows/amd64', st: 'fail',  size: '18.7 GB', machine: '旗舰（大核显）', upd: '2026-11-17 21:30', prog: 0, reason: '文件头校验失败' },
+    { name: 'Whisper-Large-v3', id: 'whisper-large-v3', type: '语音识别', ver: '3.0.2', client: 'windows/amd64', st: 'on',    size: '3.1 GB',  machine: '主流 24G',      upd: '2026-11-15 14:08', prog: 100 }
+  ];
+
+  let hasData = false;
+  let filter = { status: '', type: '', q: '' };
+
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+  const val = (s) => $(s).value.trim();
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // ---- List ----
+  function currentList() { return hasData ? MODELS : []; }
+
+  function filtered() {
+    return currentList().filter(m =>
+      (!filter.status || m.st === filter.status) &&
+      (!filter.type || m.type === filter.type) &&
+      (!filter.q || m.name.toLowerCase().includes(filter.q.toLowerCase()) || m.id.includes(filter.q.toLowerCase()))
+    );
+  }
+
+  function renderStats() {
+    const list = currentList();
+    const count = (k) => list.filter(m => m.st === k).length;
+    const items = [
+      { key: '', label: '全部', value: list.length, dot: null },
+      { key: 'up', label: '上传中', value: count('up'), dot: '#2F7BFF' },
+      { key: 'check', label: '校验中', value: count('check'), dot: '#D97706' },
+      { key: 'wait', label: '待上架', value: count('wait'), dot: '#7C3AED' },
+      { key: 'on', label: '已上架', value: count('on'), dot: '#16A34A' },
+      { key: 'fail', label: '失败', value: count('fail'), dot: '#E5484D' }
+    ];
+    $('#stats').innerHTML = items.map(i => `
+      <button class="stat ${filter.status === i.key ? 'active' : ''}" data-key="${i.key}">
+        <div class="stat-label">${i.dot ? `<span class="stat-dot" style="background:${i.dot}"></span>` : ''}${i.label}</div>
+        <div class="stat-value num">${i.value}<small>个</small></div>
+      </button>`).join('');
+  }
+
+  function renderRows() {
+    const list = filtered();
+    const body = $('#rows');
+    const foot = $('#foot');
+
+    if (!hasData) {
+      body.innerHTML = `
+        <tr><td colspan="9">
+          <div class="empty">
+            <div class="empty-art">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
+            </div>
+            <div class="empty-title">还没有模型</div>
+            <div class="empty-desc">上传第一个模型后，这里会显示它的校验进度、上架状态与适用机型。上传前会在浏览器计算 sha256，用于保证文件完整。</div>
+            <button class="btn btn-primary" data-open>上传第一个模型</button>
+            <div class="empty-note">需要上架的模型，上传并校验通过后进入「待上架」。</div>
+          </div>
+        </td></tr>`;
+      foot.textContent = '共 0 条';
+      $('#summary').textContent = '';
+      return;
+    }
+
+    if (list.length === 0) {
+      body.innerHTML = `<tr><td colspan="9"><div class="no-match">没有符合条件的模型<button id="clearFilter">清空筛选</button></div></td></tr>`;
+      foot.textContent = '共 0 条';
+      $('#summary').textContent = '已应用筛选';
+      return;
+    }
+
+    body.innerHTML = list.map(m => {
+      const s = STATUS[m.st];
+      const prog = m.st === 'up' ? `<div class="progress"><span style="width:${m.prog}%"></span></div>` : '';
+      const acts = ACTIONS[m.st].map(([label, tone]) =>
+        `<button class="btn-link ${tone === 'danger' ? 'danger' : ''}">${label}</button>`).join('');
+      return `
+        <tr>
+          <td>
+            <div class="model-name">${esc(m.name)}</div>
+            <div class="model-id">${esc(m.id)}</div>
+          </td>
+          <td><span class="type-chip">${esc(m.type)}</span></td>
+          <td class="num">${esc(m.ver)}</td>
+          <td class="muted">${esc(m.client)}</td>
+          <td>
+            <span class="tag ${s.cls}">${s.label}</span>${prog}
+            ${m.reason ? `<div class="model-id" style="color:#E5484D">${esc(m.reason)}</div>` : ''}
+          </td>
+          <td class="num">${esc(m.size)}</td>
+          <td class="muted">${esc(m.machine)}</td>
+          <td class="num muted">${esc(m.upd)}</td>
+          <td><div class="ops">${acts}</div></td>
+        </tr>`;
+    }).join('');
+
+    foot.innerHTML = `<span>共 ${list.length} 条</span><span>默认按更新时间倒序</span>`;
+    $('#summary').textContent = (filter.status || filter.type || filter.q) ? '已应用筛选' : '';
+  }
+
+  function renderAll() { renderStats(); renderRows(); }
+
+  function setData(on) {
+    hasData = on;
+    $('#sw-empty').classList.toggle('on', !on);
+    $('#sw-data').classList.toggle('on', on);
+    renderAll();
+  }
+  $('#sw-empty').onclick = () => setData(false);
+  $('#sw-data').onclick = () => setData(true);
+
+  $('#stats').addEventListener('click', e => {
+    const b = e.target.closest('.stat');
+    if (!b) return;
+    filter.status = b.dataset.key;
+    $('#fStatus').value = filter.status;
+    renderAll();
+  });
+
+  $('#fType').onchange = e => { filter.type = e.target.value; renderAll(); };
+  $('#fStatus').onchange = e => { filter.status = e.target.value; renderAll(); };
+  $('#fQuery').oninput = e => { filter.q = e.target.value.trim(); renderRows(); };
+
+  $('#rows').addEventListener('click', e => {
+    if (e.target.closest('[data-open]')) openDialog();
+    if (e.target.id === 'clearFilter') {
+      filter = { status: '', type: '', q: '' };
+      $('#fType').value = ''; $('#fStatus').value = ''; $('#fQuery').value = '';
+      renderAll();
+    }
+  });
+
+  // ---- Upload dialog ----
+  const RANGE_ORDER = ['关', '低', '中', '高', '超高', '极高', '自动'];
+  const MACHINES = ['旗舰（大核显）', '主流 32G', '主流 24G', '入门 16G'];
+  const CONFIGS = ['X7-458H-32G', 'US-425-24G', 'M16-16G', 'M15-32G'];
+  const ENGINE_VERS = {
+    'OpenVINO': [['2026.4.1', '1.0.0'], ['2026.5.0', '1.2.0']],
+    'ONNX Runtime': [['1.18.0', '1.0.0']]
+  };
+
+  const state = {
+    fileReady: false,
+    attempted: false,
+    tags: new Set(),
+    range: new Set(),
+    timer: null
+  };
+
+  function cmp(a, b) {
+    const x = a.split('.').map(Number), y = b.split('.').map(Number);
+    for (let i = 0; i < Math.max(x.length, y.length); i++) {
+      const d = (x[i] || 0) - (y[i] || 0);
+      if (d) return d;
+    }
+    return 0;
+  }
+
+  function refreshEngineMin() {
+    const eng = val('#engine'), cli = val('#clientMin');
+    const sel = $('#engineMin'), hint = $('#engineMinHint');
+    if (!cli || !eng) {
+      sel.disabled = true;
+      sel.innerHTML = `<option value="">${!cli ? '先选择客户端最低版本' : '先选择推理引擎'}</option>`;
+      hint.textContent = '先选择客户端最低版本与推理引擎';
+      return;
+    }
+    const list = (ENGINE_VERS[eng] || []).filter(([, mc]) => cmp(mc, cli) <= 0);
+    sel.disabled = false;
+    sel.innerHTML = '<option value="">请选择</option>' + list.map(([v]) => `<option>${v}</option>`).join('');
+    hint.textContent = list.length
+      ? '仅列出已上架且最低客户端版本不高于所选版本的包'
+      : '当前客户端版本下没有可用的引擎包';
+  }
+
+  function refreshRecommended() {
+    const sel = $('#recommended');
+    const prev = sel.value;
+    const opts = RANGE_ORDER.filter(r => state.range.has(r));
+    if (!opts.length) {
+      sel.innerHTML = '<option value="">请先选择推理强度范围</option>';
+      return;
+    }
+    sel.innerHTML = '<option value="">请选择</option>' + opts.map(o => `<option>${o}</option>`).join('');
+    sel.value = opts.includes(prev) ? prev : (opts.includes('自动') ? '自动' : '');
+  }
+
+  function setErr(key, bad) {
+    const w = document.querySelector(`[data-key="${key}"]`);
+    if (w) w.classList.toggle('invalid', bad);
+  }
+
+  function validate() {
+    const rules = {
+      file: !state.fileReady,
+      name: !val('#name'),
+      version: !/^\d+(\.\d+){1,2}$/.test(val('#version')),
+      vendor: !val('#vendor'),
+      type: !val('#type'),
+      params: !val('#params'),
+      introZh: !val('#introZh'),
+      tags: state.tags.size === 0,
+      engine: !val('#engine'),
+      clientMin: !val('#clientMin'),
+      engineMin: !val('#engineMin'),
+      quant: !val('#quant'),
+      ctx: !(Number($('#ctx').value) > 0),
+      mem: !(Number($('#mem').value) > 0),
+      range: state.range.size === 0,
+      recommended: !val('#recommended')
+    };
+    let n = 0;
+    for (const k in rules) {
+      if (rules[k]) n++;
+      if (state.attempted) setErr(k, rules[k]);
+    }
+    const sum = $('#errSum');
+    sum.textContent = `还有 ${n} 项必填未完成`;
+    sum.classList.toggle('show', state.attempted && n > 0);
+    return n;
+  }
+
+  $('#dlgBody').addEventListener('click', (e) => {
+    const chip = e.target.closest('.chip');
+    if (chip) {
+      const group = chip.parentElement.dataset.group;
+      const set = state[group];
+      const v = chip.dataset.val;
+      const on = !chip.classList.contains('on');
+      chip.classList.toggle('on', on);
+      on ? set.add(v) : set.delete(v);
+      if (group === 'range' && on) {
+        const pair = v === '关' ? '自动' : v === '自动' ? '关' : null;
+        if (pair && set.has(pair)) {
+          set.delete(pair);
+          $(`.chip[data-val="${pair}"]`).classList.remove('on');
+        }
+      }
+      if (group === 'range') refreshRecommended();
+      validate();
+      return;
+    }
+
+    const seg = e.target.closest('#device button');
+    if (seg) {
+      $$('#device button').forEach(b => b.classList.toggle('on', b === seg));
+      return;
+    }
+
+    const pick = e.target.closest('[data-pick]');
+    if (pick) { simulatePick(pick.dataset.pick); return; }
+
+    const add = e.target.closest('[data-add]');
+    if (add) { addRow(add.dataset.add === 'rec'); return; }
+
+    const rm = e.target.closest('.x');
+    if (rm) {
+      rm.closest('.mrow').remove();
+      validate();
+    }
+  });
+
+  $('#dlgBody').addEventListener('input', validate);
+  $('#dlgBody').addEventListener('change', (e) => {
+    if (e.target.id === 'clientMin' || e.target.id === 'engine') refreshEngineMin();
+    validate();
+  });
+
+  function simulatePick(kind) {
+    clearInterval(state.timer);
+    state.fileReady = false;
+    $('#fileBox').classList.add('show');
+    $('#fileName').textContent = kind === 'dir'
+      ? 'Qwen3.6-35B-A3B/（目录，共 12 个文件）'
+      : 'Qwen3.6-35B-A3B-Q4_K_M.gguf';
+    $('#fileSize').textContent = '22.1 GB';
+    let p = 0;
+    $('#fileBar').style.width = '0%';
+    $('#shaLine').textContent = '计算 sha256 中… 0%';
+    state.timer = setInterval(() => {
+      p = Math.min(100, p + 4);
+      $('#fileBar').style.width = p + '%';
+      $('#shaLine').textContent = `计算 sha256 中… ${p}%`;
+      if (p >= 100) {
+        clearInterval(state.timer);
+        state.fileReady = true;
+        $('#shaLine').innerHTML = 'sha256 <code>3a7f9c1e…d20b84f6</code> · 已就绪';
+        validate();
+      }
+    }, 80);
+    validate();
+  }
+
+  function addRow(withRec) {
+    const list = $(withRec ? '#recList' : '#appList');
+    const row = document.createElement('div');
+    const opts = (arr) => arr.map(x => `<option>${x}</option>`).join('');
+    row.className = 'mrow' + (withRec ? '' : ' norec');
+    row.innerHTML = `
+      ${withRec ? `<label class="radio"><input type="radio" name="rec" value="${list.children.length}"${list.children.length === 0 ? ' checked' : ''}>默认</label>` : ''}
+      <select aria-label="机型">${opts(MACHINES)}</select>
+      <select aria-label="配置">${opts(CONFIGS)}</select>
+      <button type="button" class="x" aria-label="移除">×</button>`;
+    list.appendChild(row);
+  }
+
+  function openDialog() { $('#dlgMask').classList.add('open'); }
+  function closeDialog() { $('#dlgMask').classList.remove('open'); }
+  $('#openUpload').onclick = openDialog;
+  $('#closeBtn').onclick = closeDialog;
+  $('#cancelBtn').onclick = closeDialog;
+  $('#dlgMask').addEventListener('click', (e) => { if (e.target.id === 'dlgMask') closeDialog(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDialog(); });
+
+  function showToast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2200);
+  }
+
+  $('#submitBtn').onclick = () => {
+    state.attempted = true;
+    if (validate() > 0) return;
+    const name = val('#name');
+    const now = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    MODELS.unshift({
+      name, id: name.toLowerCase(), type: val('#type'), ver: val('#version'),
+      client: 'windows/amd64', st: 'up', size: $('#fileSize').textContent || '—',
+      machine: '—', upd: `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}`,
+      prog: 0
+    });
+    closeDialog();
+    setData(true);
+    showToast('已提交，状态：上传中 → 校验中');
+  };
+
+  renderAll();
+  validate();
+</script>
+<script>
+  // Sidebar navigation between the two linked pages
+  const NAV_PAGES = { '模型': '运营平台-模型列表设计.html', '推理引擎': '运营平台-推理引擎设计.html', '元数据': '运营平台-元数据设计.html', '使用日志': '运营平台-使用日志设计.html' };
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+    const target = NAV_PAGES[btn.textContent.trim()];
+    if (!target) return;
+    btn.addEventListener('click', () => {
+      if (!location.pathname.endsWith(target)) location.href = target;
+    });
+  });
+</script>
+</body>
+</html>

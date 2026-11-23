@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小米算力平台-OPS · 元数据</title>
+<style>
+  :root {
+    --color-primary: #2F7BFF;
+    --color-primary-hover: #1F6AEE;
+    --color-primary-soft: #E4EEFD;
+    --color-bg-app: #FAFAFB;
+    --color-bg-sidebar: #F5F6F8;
+    --color-surface: #FFFFFF;
+    --color-border: #E8EAEE;
+    --color-border-row: #EEF0F3;
+    --color-text-primary: #1F2329;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9AA0A9;
+    --color-danger: #E5484D;
+    --color-danger-soft: #FDECEC;
+    --color-success: #16A34A;
+    --color-success-soft: #E6F7EE;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.04);
+    --shadow-dialog: 0 12px 48px rgba(16,24,40,0.16);
+    --font-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: var(--font-sans); font-size: 14px; line-height: 22px; color: var(--color-text-primary); background: var(--color-bg-app); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; }
+
+  /* ---------- Shell ---------- */
+  .app { display: flex; height: 100vh; min-height: 620px; }
+  .sidebar { width: 200px; flex: none; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border); padding: 20px 12px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .brand-mark { width: 28px; height: 28px; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+  .brand-name { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: var(--radius-md); color: var(--color-text-primary); text-align: left; width: 100%; transition: background-color 150ms ease; }
+  .nav-item:hover { background: #ECEEF2; }
+  .nav-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-group-label { font-size: 12px; color: var(--color-text-tertiary); padding: 16px 12px 6px; }
+  .sidebar-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--color-border); }
+  .account-name { font-size: 13px; font-weight: 500; }
+  .account-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .logout { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); height: 28px; padding: 0 12px; }
+
+  .main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 48px 48px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 8px; }
+  .crumb { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
+  .page-title { font-size: 20px; font-weight: 600; line-height: 28px; }
+  .page-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 20px; max-width: 760px; margin-bottom: 20px; }
+
+  /* ---------- Tabs ---------- */
+  .tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--color-border-row); margin-bottom: 20px; overflow-x: auto; }
+  .tab { height: 40px; font-size: 15px; color: var(--color-text-tertiary); position: relative; white-space: nowrap; }
+  .tab:hover { color: var(--color-text-secondary); }
+  .tab.on { color: var(--color-text-primary); font-weight: 600; }
+  .tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--color-primary); border-radius: 2px; }
+
+  /* ---------- Buttons ---------- */
+  .btn { height: 36px; padding: 0 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background-color 150ms ease; flex: none; }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-primary:hover { background: var(--color-primary-hover); }
+  .btn-ghost { background: #F2F3F5; color: var(--color-text-primary); }
+  .btn-ghost:hover { background: #E7E9ED; }
+  .btn-sec { height: 32px; padding: 0 12px; border-radius: var(--radius-md); background: #F2F3F5; font-size: 13px; }
+  .btn-sec:hover { background: #E7E9ED; }
+  .btn-link { height: 30px; padding: 0 8px; color: var(--color-primary); font-size: 13px; border-radius: var(--radius-md); }
+  .btn-link:hover { background: var(--color-primary-soft); }
+  .btn-link.danger { color: var(--color-danger); }
+  .btn-link.danger:hover { background: var(--color-danger-soft); }
+  .btn-danger { background: var(--color-danger); color: #fff; }
+  .btn-danger:hover { background: #D03A3F; }
+
+  /* ---------- Panel / table ---------- */
+  .panel { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 16px 20px; border-bottom: 1px solid var(--color-border-row); }
+  .tab-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 20px; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); height: 40px; padding: 0 16px; background: #FAFBFC; border-bottom: 1px solid var(--color-border-row); white-space: nowrap; }
+  td { padding: 12px 16px; border-bottom: 1px solid var(--color-border-row); vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: #FAFBFC; }
+  .strong { font-weight: 500; }
+  .sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .muted { color: var(--color-text-secondary); }
+  .num { font-variant-numeric: tabular-nums; }
+  .ops { display: flex; gap: 2px; }
+  .table-foot { display: flex; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--color-border-row); font-size: 12px; color: var(--color-text-tertiary); }
+  .tag { height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .tag.on { background: var(--color-success-soft); color: var(--color-success); }
+  .tag.off { background: #F0F1F3; color: var(--color-text-secondary); }
+  .badge { height: 20px; padding: 0 8px; border-radius: 4px; font-size: 12px; background: var(--color-primary-soft); color: var(--color-primary); display: inline-flex; align-items: center; }
+
+  /* ---------- Machines split ---------- */
+  .split { display: grid; grid-template-columns: 290px 1fr; min-height: 460px; }
+  .m-side { border-right: 1px solid var(--color-border-row); display: flex; flex-direction: column; }
+  .m-side-head { display: flex; align-items: center; justify-content: space-between; padding: 16px 16px 12px; }
+  .m-side-title { font-size: 15px; font-weight: 600; }
+  .m-count { font-size: 12px; color: var(--color-text-tertiary); margin-left: 6px; font-weight: 400; }
+  .m-search { margin: 0 16px 12px; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--color-border); display: flex; align-items: center; gap: 8px; padding: 0 12px; }
+  .m-search input { border: 0; outline: none; flex: 1; background: transparent; font-size: 13px; }
+  .m-search input::placeholder { color: var(--color-text-tertiary); }
+  .m-search svg { width: 14px; height: 14px; color: var(--color-text-tertiary); flex: none; }
+  .m-list { padding: 0 12px 12px; display: flex; flex-direction: column; gap: 4px; overflow-y: auto; }
+  .m-item { text-align: left; padding: 10px 12px; border-radius: var(--radius-md); border: 1px solid transparent; display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  .m-item:hover { background: #F5F6F8; }
+  .m-item.on { background: #fff; border-color: #D5E3FB; box-shadow: 0 1px 2px rgba(16,24,40,0.06); }
+  .m-item-name { font-size: 14px; font-weight: 500; }
+  .m-item-meta { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--color-success); flex: none; }
+  .dot.off { background: #C4C9D2; }
+  .m-detail { padding: 20px 24px; display: flex; flex-direction: column; gap: 20px; min-width: 0; }
+  .m-head { display: flex; justify-content: space-between; gap: 16px; }
+  .builtin { font-size: 12px; color: var(--color-primary); background: var(--color-primary-soft); height: 20px; padding: 0 8px; border-radius: 4px; display: inline-flex; align-items: center; }
+  .m-name { font-size: 18px; font-weight: 600; margin-top: 8px; line-height: 26px; }
+  .m-meta { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .m-head-right { display: flex; align-items: center; gap: 12px; flex: none; }
+  .state-text { font-size: 13px; color: var(--color-success); display: inline-flex; align-items: center; gap: 6px; }
+  .state-text.off { color: var(--color-text-tertiary); }
+  .cfg-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; border-top: 1px solid var(--color-border-row); padding-top: 18px; }
+  .cfg-title { font-size: 15px; font-weight: 600; }
+  .cfg-hint { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; line-height: 18px; }
+  .cfg-table { border: 1px solid var(--color-border-row); border-radius: var(--radius-lg); overflow: hidden; }
+  .cfg-table th { background: #FAFBFC; }
+  .empty-note { padding: 24px; text-align: center; font-size: 13px; color: var(--color-text-tertiary); }
+
+  /* ---------- Modal ---------- */
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: grid; place-items: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 200ms ease; z-index: 50; }
+  .mask.open { opacity: 1; pointer-events: auto; }
+  .dialog { width: 640px; max-width: 100%; max-height: min(600px, 80vh); background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-dialog); display: flex; flex-direction: column; overflow: hidden; transform: translateY(8px); transition: transform 200ms ease; }
+  .mask.open .dialog { transform: translateY(0); }
+  .dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--color-border-row); flex: none; }
+  .dlg-title { font-size: 18px; font-weight: 600; line-height: 26px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: var(--radius-md); display: grid; place-items: center; color: var(--color-text-secondary); flex: none; }
+  .icon-btn:hover { background: #ECEEF2; }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .dlg-body { flex: 1; overflow-y: auto; min-height: 0; padding: 20px 24px; }
+  .dlg-foot { flex: none; padding: 14px 24px; border-top: 1px solid var(--color-border-row); display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff; }
+  .err-sum { font-size: 12px; color: var(--color-danger); display: none; }
+  .err-sum.show { display: block; }
+  .foot-actions { display: flex; gap: 8px; margin-left: auto; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .full { grid-column: 1 / -1; }
+  .f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .f > label { font-size: 13px; font-weight: 500; }
+  .req { color: var(--color-danger); margin-right: 2px; }
+  .hint { font-size: 12px; color: var(--color-text-tertiary); line-height: 18px; }
+  .err { display: none; font-size: 12px; color: var(--color-danger); line-height: 18px; }
+  .f.invalid .err { display: block; }
+  .f.invalid .field-input, .f.invalid .field-select, .f.invalid .field-textarea { border-color: var(--color-danger); }
+  .field-input, .field-select, .field-textarea { width: 100%; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: #fff; padding: 0 12px; font-size: 14px; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; }
+  .field-input::placeholder, .field-textarea::placeholder { color: var(--color-text-tertiary); }
+  .field-input:focus, .field-select:focus, .field-textarea:focus, .m-search input:focus { outline: none; }
+  .field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(47,123,255,0.12); }
+  .field-textarea { height: 72px; padding: 8px 12px; resize: vertical; line-height: 20px; }
+  .field-select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%239AA0A9' stroke-width='1.5'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  .confirm { width: 400px; }
+  .confirm .dlg-body { padding: 20px 24px 8px; }
+  .confirm p { font-size: 13px; color: var(--color-text-secondary); line-height: 20px; }
+
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: var(--color-text-primary); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: var(--radius-md); opacity: 0; transition: all 200ms ease; pointer-events: none; z-index: 60; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">MI</div>
+      <div>
+        <div class="brand-name">小米算力平台-OPS</div>
+        <div class="brand-sub">运营控制台</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+        模型
+      </button>
+    </nav>
+
+    <div class="nav-group-label">业务</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+        推理引擎
+      </button>
+      <button class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h12M4 10h12M4 15h8"/></svg>
+        元数据
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h6l3 3v11H6z"/><path d="M8 10h5M8 13h4"/></svg>
+        使用日志
+      </button>
+    </nav>
+
+    <div class="nav-group-label">管控</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 10.5l3 3 7-7"/></svg>
+        审批
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg>
+        用户
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3l6 2.5v4.5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5.5z"/></svg>
+        角色权限
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="account-name">系统管理员</div>
+      <div class="account-meta">admin · 本地</div>
+      <button class="logout nav-item">退出</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <div class="crumb">运行时 / 元数据</div>
+        <h1 class="page-title">元数据</h1>
+      </div>
+    </header>
+    <p class="page-desc">模型上传时从这里取类型、标签、推理平台、客户端版本、推理强度和机型。推理引擎的版本包在独立模块里维护。运行设备仍然只有 GPU 和 NPU。</p>
+
+    <nav class="tabs" id="tabs"></nav>
+    <div id="tabBody"></div>
+  </main>
+</div>
+
+<!-- Generic form modal (dictionary items, machines, configs) -->
+<div class="mask" id="formMask">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <header class="dlg-head">
+      <div class="dlg-title" id="formTitle"></div>
+      <button class="icon-btn" data-close aria-label="关闭">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+    <div class="dlg-body"><div class="grid" id="formGrid"></div></div>
+    <footer class="dlg-foot">
+      <span class="err-sum" id="formSum"></span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" data-close>取消</button>
+        <button class="btn btn-primary" id="formSave">保存</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Confirm modal -->
+<div class="mask" id="cfMask">
+  <div class="dialog confirm" role="dialog" aria-modal="true">
+    <header class="dlg-head">
+      <div class="dlg-title" id="cfTitle"></div>
+    </header>
+    <div class="dlg-body"><p id="cfText"></p></div>
+    <footer class="dlg-foot">
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="cfCancel">取消</button>
+        <button class="btn btn-danger" id="cfOk">确认删除</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  let uid = 1000;
+  const newId = () => ++uid;
+
+  const CODE_RE = /^[a-z0-9._-]+$/;
+  const SEMVER_RE = /^\d+\.\d+\.\d+$/;
+  const HEX4_RE = /^[0-9a-fA-F]{4}$/;
+  const CODE_MSG = '仅支持小写字母、数字、点、下划线、中横线';
+
+  // ---------- Dictionary tabs ----------
+  const DICTS = {
+    types: {
+      label: '模型类型',
+      desc: '类型会出现在模型表单中。中文是源文案，英文留空时仍显示中文。停用后不能用于新模型，已入库模型保留原类型。',
+      cols: [
+        { label: '名称', r: r => `<div class="strong">${esc(r.name)}</div><div class="sub">${esc(r.code)}</div>` },
+        { label: '分类', r: r => esc(r.cat) },
+        { label: '说明', r: r => esc(r.desc) }
+      ],
+      fields: [
+        { key: 'code', label: '编码', req: true, check: { re: CODE_RE, msg: CODE_MSG }, hint: '全局唯一，创建后作为客户端识别键' },
+        { key: 'name', label: '名称', req: true, hint: '中文为源文案' },
+        { key: 'cat', label: '分类', req: true, type: 'select', opts: ['语言', '视觉', '检索', '语音'] },
+        { key: 'sort', label: '排序', type: 'number', hint: '越小越靠前' },
+        { key: 'desc', label: '说明', type: 'textarea', full: true }
+      ],
+      rows: [
+        { id: 1, code: 'llm', name: '语言模型', cat: '语言', desc: '对话、写作和代码等文本生成', sort: 10, on: true },
+        { id: 2, code: 'vlm', name: '视觉语言', cat: '视觉', desc: '同时理解图像和文字', sort: 20, on: true },
+        { id: 3, code: 'translate', name: '机器翻译', cat: '语言', desc: '跨语言文本转换', sort: 30, on: true },
+        { id: 4, code: 'embedding', name: '文本嵌入', cat: '检索', desc: '把文本变成向量，用于检索和相似度', sort: 40, on: true },
+        { id: 5, code: 'rerank', name: '重排序', cat: '检索', desc: '对检索候选重新打分', sort: 50, on: true },
+        { id: 6, code: 'asr', name: '语音识别', cat: '语音', desc: '语音转文字', sort: 60, on: true },
+        { id: 7, code: 'tts', name: '语音合成', cat: '语音', desc: '文字转语音', sort: 70, on: true }
+      ]
+    },
+    tags: {
+      label: '标签',
+      desc: '标签只描述场景，不改变模型类型。客户端只看到当前有上架模型的标签。',
+      cols: [
+        { label: '名称', r: r => `<div class="strong">${esc(r.name)}</div><div class="sub">${esc(r.code)}${r.nameEn ? ' · ' + esc(r.nameEn) : ''}</div>` },
+        { label: '说明', r: r => esc(r.desc) }
+      ],
+      fields: [
+        { key: 'code', label: '编码', req: true, check: { re: CODE_RE, msg: CODE_MSG } },
+        { key: 'name', label: '中文名称', req: true },
+        { key: 'desc', label: '中文说明', type: 'textarea' },
+        { key: 'nameEn', label: 'ENGLISH 名称' },
+        { key: 'descEn', label: 'ENGLISH 说明', type: 'textarea' },
+        { key: 'sort', label: '排序', type: 'number' }
+      ],
+      rows: [
+        { id: 11, code: 'doc', name: '文档纠错', nameEn: 'Document', desc: '校对与改写文档内容', sort: 10, on: true },
+        { id: 12, code: 'coding', name: '编程', nameEn: 'Coding', desc: '代码生成与解释', sort: 20, on: true },
+        { id: 13, code: 'paper', name: '撰写论文', nameEn: 'Paper', desc: '论文写作与润色', sort: 30, on: true },
+        { id: 14, code: 'podcast', name: '语音播客', nameEn: 'Podcast', desc: '语音内容生成', sort: 40, on: true },
+        { id: 15, code: 'qa', name: '问答', nameEn: 'Q&A', desc: '通用知识问答', sort: 50, on: true },
+        { id: 16, code: 'minutes', name: '会议纪要', nameEn: 'Minutes', desc: '会议内容整理', sort: 60, on: true },
+        { id: 17, code: 'multimodal', name: '多模态', nameEn: 'Multimodal', desc: '图文等多种输入', sort: 70, on: false }
+      ]
+    },
+    platforms: {
+      label: '推理平台',
+      desc: '这里只维护引擎编码和制品格式，版本包在推理引擎中上传、校验和上架。停用后不能再发新版本。',
+      cols: [
+        { label: '名称', r: r => `<div class="strong">${esc(r.name)}</div><div class="sub">${esc(r.code)}</div>` },
+        { label: '制品格式', r: r => `<span class="badge">${esc(r.format)}</span>` },
+        { label: '说明', r: r => esc(r.desc) }
+      ],
+      fields: [
+        { key: 'code', label: '编码', req: true, check: { re: CODE_RE, msg: CODE_MSG } },
+        { key: 'name', label: '名称', req: true },
+        { key: 'format', label: '制品格式', req: true, type: 'select', opts: ['ir', 'gguf', 'onnx'] },
+        { key: 'sort', label: '排序', type: 'number' },
+        { key: 'desc', label: '说明', type: 'textarea', full: true }
+      ],
+      rows: [
+        { id: 21, code: 'openvino', name: 'OpenVINO', format: 'ir', desc: 'Intel 平台推理引擎', sort: 10, on: true },
+        { id: 22, code: 'llama.cpp', name: 'llama.cpp', format: 'gguf', desc: '通用 CPU/GPU 量化推理', sort: 20, on: true },
+        { id: 23, code: 'sherpa-onnx', name: 'sherpa-onnx', format: 'onnx', desc: '语音识别与合成', sort: 30, on: true }
+      ]
+    },
+    clients: {
+      label: '客户端版本',
+      desc: '编码必须是语义化版本，例如 1.4.0。模型和引擎包的最低客户端版本都从这里选择。被模型引用的版本不能删除。',
+      del: true,
+      cols: [
+        { label: '名称', r: r => `<div class="strong">${esc(r.name)}</div><div class="sub">${esc(r.code)}</div>` },
+        { label: '说明', r: r => esc(r.desc) },
+        { label: '引用', r: r => `<span class="muted num">${r.refs} 个模型</span>` }
+      ],
+      fields: [
+        { key: 'code', label: '编码（语义化版本）', req: true, check: { re: SEMVER_RE, msg: '请输入语义化版本，例如 1.4.0' } },
+        { key: 'name', label: '名称', req: true },
+        { key: 'sort', label: '排序', type: 'number' },
+        { key: 'desc', label: '说明', type: 'textarea', full: true }
+      ],
+      rows: [
+        { id: 31, code: '1.0.0', name: 'micompute1.0.0', desc: '当前稳定版客户端', sort: 10, on: true, refs: 2 },
+        { id: 32, code: '1.2.0', name: 'micompute1.2.0', desc: '含音频能力', sort: 20, on: true, refs: 0 },
+        { id: 33, code: '0.0.1', name: 'micompute0.0.1', desc: '早期内测版', sort: 30, on: false, refs: 0 }
+      ]
+    },
+    strength: {
+      label: '推理强度',
+      desc: '推荐推理强度必须落在模型勾选的范围内。档位名称为中文，编码为英文。',
+      cols: [
+        { label: '名称', r: r => `<div class="strong">${esc(r.name)}</div><div class="sub">${esc(r.code)}</div>` },
+        { label: '说明', r: r => esc(r.desc) }
+      ],
+      fields: [
+        { key: 'code', label: '编码', req: true, check: { re: CODE_RE, msg: CODE_MSG } },
+        { key: 'name', label: '名称（中文）', req: true },
+        { key: 'sort', label: '排序', type: 'number' },
+        { key: 'desc', label: '说明', type: 'textarea', full: true }
+      ],
+      rows: [
+        { id: 41, code: 'off', name: '关', desc: '不启用推理强度', sort: 10, on: true },
+        { id: 42, code: 'low', name: '低', desc: '最快响应', sort: 20, on: true },
+        { id: 43, code: 'mid', name: '中', desc: '速度与质量平衡', sort: 30, on: true },
+        { id: 44, code: 'high', name: '高', desc: '较深推理', sort: 40, on: true },
+        { id: 45, code: 'ultra', name: '超高', desc: '长链推理', sort: 50, on: true },
+        { id: 46, code: 'max', name: '极高', desc: '最深推理，耗时最长', sort: 60, on: false },
+        { id: 47, code: 'auto', name: '自动', desc: '由平台择档', sort: 70, on: true }
+      ]
+    }
+  };
+
+  // ---------- Machines ----------
+  const MACH_FIELDS_NEW = [
+    { key: 'code', label: '机型标识', req: true, check: { re: CODE_RE, msg: CODE_MSG }, hint: '系统唯一键，创建后不可修改' },
+    { key: 'name', label: '机型名称', req: true, hint: '列表首行展示的名称' },
+    { key: 'vendor', label: '厂商', hint: '用于按厂商归类' },
+    { key: 'proj', label: '项目代号', hint: '同一项目代号可对应多个机型' },
+    { key: 'sort', label: '排序', type: 'number', hint: '默认 10' },
+    { key: 'desc', label: '说明', type: 'textarea', full: true }
+  ];
+  const MACH_FIELDS_EDIT = [
+    { key: 'name', label: '机型名称', req: true },
+    { key: 'vendor', label: '厂商' },
+    { key: 'proj', label: '项目代号' },
+    { key: 'sort', label: '排序', type: 'number' },
+    { key: 'status', label: '状态', req: true, type: 'select', opts: ['启用', '停用'], hint: '停用后不再出现在模型表单中' },
+    { key: 'desc', label: '说明', type: 'textarea', full: true }
+  ];
+  const CFG_FIELDS = [
+    { key: 'code', label: '配置编码', req: true, hint: '对应客户端 sku_code' },
+    { key: 'platform', label: '平台代号', hint: '与客户端 device.platform 一致才精确匹配；留空只按硬件档位匹配' },
+    { key: 'chip', label: '芯片', req: true },
+    { key: 'cpu', label: 'CPU 名称', hint: '仅用于展示，不参与匹配' },
+    { key: 'mem', label: '物理内存（GiB）', req: true, type: 'number', hint: '按 GiB 保存，例如 32 GiB = 34359738368 字节' },
+    { key: 'gpu', label: '显卡', req: true, hint: '显卡档位或型号描述' },
+    { key: 'vendor', label: '显卡厂商号', check: { re: HEX4_RE, msg: '请输入四位十六进制，例如 8086' }, hint: '四位十六进制，与设备号成对填写' },
+    { key: 'device', label: '显卡设备号', check: { re: HEX4_RE, msg: '请输入四位十六进制' }, hint: '四位十六进制，与厂商号成对填写' },
+    { key: 'sort', label: '排序', type: 'number', hint: '默认 10' }
+  ];
+
+  let MACHINES = [
+    { id: 1, code: 'sku-x7-458h', name: '旗舰（大核显）', vendor: 'Xiaomi', proj: 'X7-458H', desc: '验收机型', on: true, sort: 10,
+      configs: [{ id: 101, code: 'X7-458H-32G', platform: '', chip: 'X7-458H', cpu: '', mem: 32, gpu: '大核显', vendor: '', device: '', sort: 10 }] },
+    { id: 2, code: 'sku-u5-425-32g', name: '主流 32G', vendor: 'Xiaomi', proj: 'U5-425', desc: '', on: true, sort: 20,
+      configs: [{ id: 201, code: 'U5-425-32G', platform: 'PTL', chip: 'U5-425', cpu: 'Intel Core Ultra 5', mem: 32, gpu: '集显', vendor: '8086', device: '7d55', sort: 10 }] },
+    { id: 3, code: 'sku-u5-425-24g', name: '主流 24G', vendor: 'Xiaomi', proj: 'U5-425', desc: '', on: true, sort: 30,
+      configs: [{ id: 301, code: 'U5-425-24G', platform: 'PTL', chip: 'U5-425', cpu: '', mem: 24, gpu: '集显', vendor: '', device: '', sort: 10 }] },
+    { id: 4, code: 'sku-u5-425-16g', name: '入门 16G', vendor: 'Xiaomi', proj: 'U5-425', desc: '', on: true, sort: 40,
+      configs: [{ id: 401, code: 'U5-425-16G', platform: '', chip: 'U5-425', cpu: '', mem: 16, gpu: '集显', vendor: '', device: '', sort: 10 }] },
+    { id: 5, code: 'sku-m16', name: '小米笔记本 Pro 16', vendor: 'Xiaomi', proj: 'M16', desc: '', on: true, sort: 50,
+      configs: [
+        { id: 501, code: 'M16-32G', platform: '', chip: 'M16', cpu: '', mem: 32, gpu: '大核显', vendor: '', device: '', sort: 10 },
+        { id: 502, code: 'M16-16G', platform: '', chip: 'M16', cpu: '', mem: 16, gpu: '集显', vendor: '', device: '', sort: 20 }
+      ] }
+  ];
+  let selectedMid = 1;
+  let currentTab = 'types';
+  const TAB_LIST = [['types', '模型类型'], ['tags', '标签'], ['platforms', '推理平台'], ['clients', '客户端版本'], ['strength', '推理强度'], ['machines', '适配机型']];
+
+  // ---------- Tabs ----------
+  function renderTabs() {
+    $('#tabs').innerHTML = TAB_LIST.map(([k, l]) =>
+      `<button class="tab ${k === currentTab ? 'on' : ''}" data-tab="${k}">${l}</button>`).join('');
+  }
+
+  function renderBody() {
+    if (currentTab === 'machines') return renderMachines();
+    renderDict();
+  }
+
+  function renderDict() {
+    const cfg = DICTS[currentTab];
+    $('#tabBody').innerHTML = `
+      <section class="panel">
+        <div class="panel-head">
+          <div class="tab-desc">${esc(cfg.desc)}</div>
+          <button class="btn btn-primary" data-new>新增</button>
+        </div>
+        <table>
+          <thead><tr>${cfg.cols.map(c => `<th>${c.label}</th>`).join('')}<th>排序</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            ${cfg.rows.map(r => `
+              <tr>
+                ${cfg.cols.map(c => `<td>${c.r(r)}</td>`).join('')}
+                <td class="num muted">${r.sort}</td>
+                <td><span class="tag ${r.on ? 'on' : 'off'}">${r.on ? '启用' : '停用'}</span></td>
+                <td><div class="ops">
+                  <button class="btn-link" data-act="edit" data-id="${r.id}">编辑</button>
+                  <button class="btn-link" data-act="toggle" data-id="${r.id}">${r.on ? '停用' : '启用'}</button>
+                  ${cfg.del ? `<button class="btn-link danger" data-act="del" data-id="${r.id}">删除</button>` : ''}
+                </div></td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+        <div class="table-foot"><span>共 ${cfg.rows.length} 条</span><span>停用只拦截新提交，存量数据保留</span></div>
+      </section>`;
+  }
+
+  // ---------- Machines split ----------
+  function renderMachines() {
+    $('#tabBody').innerHTML = `
+      <section class="panel split">
+        <aside class="m-side">
+          <div class="m-side-head">
+            <div class="m-side-title">机型<span class="m-count" id="mCount"></span></div>
+            <button class="btn-sec" data-m-new>新增</button>
+          </div>
+          <label class="m-search">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="7" cy="7" r="4.5"/><path d="M10.5 10.5L14 14"/></svg>
+            <input id="mQuery" placeholder="名称、标识或代号">
+          </label>
+          <div class="m-list" id="mList"></div>
+        </aside>
+        <div class="m-detail" id="mDetail"></div>
+      </section>`;
+    renderMachineList();
+    renderMachineDetail();
+  }
+
+  function filteredMachines() {
+    const q = ($('#mQuery')?.value || '').trim().toLowerCase();
+    return MACHINES.filter(m => !q || [m.name, m.code, m.proj].some(x => (x || '').toLowerCase().includes(q)));
+  }
+
+  function renderMachineList() {
+    const list = filteredMachines();
+    $('#mCount').textContent = `${MACHINES.length} 个`;
+    $('#mList').innerHTML = list.length ? list.map(m => `
+      <button class="m-item ${m.id === selectedMid ? 'on' : ''}" data-m="${m.id}">
+        <div>
+          <div class="m-item-name">${esc(m.name)}</div>
+          <div class="m-item-meta">${esc(m.proj)} · ${m.configs.length} 个配置</div>
+        </div>
+        <span class="dot ${m.on ? '' : 'off'}"></span>
+      </button>`).join('') : '<div class="empty-note">没有匹配的机型</div>';
+  }
+
+  function renderMachineDetail() {
+    const m = MACHINES.find(x => x.id === selectedMid);
+    if (!m) {
+      $('#mDetail').innerHTML = '<div class="empty-note">请先在左侧选择机型，或新增机型</div>';
+      return;
+    }
+    $('#mDetail').innerHTML = `
+      <div class="m-head">
+        <div>
+          <span class="builtin">内置机型</span>
+          <div class="m-name">${esc(m.name)}</div>
+          <div class="m-meta">${esc(m.code)} · ${esc(m.proj)}</div>
+          ${m.desc ? `<div class="m-meta">${esc(m.desc)}</div>` : ''}
+        </div>
+        <div class="m-head-right">
+          <span class="state-text ${m.on ? '' : 'off'}">● ${m.on ? '启用' : '停用'}</span>
+          <button class="btn-sec" data-m-edit>编辑机型</button>
+        </div>
+      </div>
+      <div class="cfg-head">
+        <div>
+          <div class="cfg-title">配置</div>
+          <div class="cfg-hint">先选左边的机型，再维护配置。模型里每个机型只能选一条，没有配置的机型不能添加。</div>
+        </div>
+        <button class="btn btn-primary" data-cfg-add>添加配置</button>
+      </div>
+      <div class="cfg-table">
+        <table>
+          <thead><tr><th>配置</th><th>平台</th><th>芯片</th><th>内存</th><th>显卡</th><th>状态</th><th>操作</th></tr></thead>
+          <tbody>
+            ${m.configs.length ? m.configs.map(c => `
+              <tr>
+                <td class="strong">${esc(c.code)}</td>
+                <td class="muted">${c.platform ? esc(c.platform) : '—'}</td>
+                <td class="muted">${esc(c.chip)}</td>
+                <td class="num">${c.mem} GiB</td>
+                <td class="muted">${esc(c.gpu)}</td>
+                <td><span class="tag on">启用</span></td>
+                <td><div class="ops">
+                  <button class="btn-link" data-cfg-edit="${c.id}">编辑</button>
+                  <button class="btn-link danger" data-cfg-del="${c.id}">删除</button>
+                </div></td>
+              </tr>`).join('') : '<tr><td colspan="7"><div class="empty-note">该机型暂无配置，模型侧不可选择</div></td></tr>'}
+          </tbody>
+        </table>
+      </div>`;
+  }
+
+  // ---------- Generic form ----------
+  let formCtx = null;
+
+  function openForm({ title, fields, values = {}, onSave }) {
+    formCtx = { fields, onSave };
+    $('#formTitle').textContent = title;
+    $('#formSum').classList.remove('show');
+    $('#formGrid').innerHTML = fields.map(f => {
+      const v = values[f.key] ?? '';
+      let ctl;
+      if (f.type === 'select') {
+        ctl = `<select class="field-select" id="ff-${f.key}">
+          <option value="">请选择</option>
+          ${f.opts.map(o => `<option ${String(v) === o ? 'selected' : ''}>${esc(o)}</option>`).join('')}
+        </select>`;
+      } else if (f.type === 'textarea') {
+        ctl = `<textarea class="field-textarea" id="ff-${f.key}" placeholder="${esc(f.hint || '')}">${esc(v)}</textarea>`;
+      } else {
+        ctl = `<input class="field-input" id="ff-${f.key}" type="${f.type === 'number' ? 'number' : 'text'}" value="${esc(v)}" ${f.type === 'number' ? '' : ''}>`;
+      }
+      const showHint = f.hint && f.type !== 'textarea';
+      return `
+        <div class="f ${f.full ? 'full' : ''}" data-key="${f.key}">
+          <label>${f.req ? '<span class="req">*</span>' : ''}${esc(f.label)}</label>
+          ${ctl}
+          ${showHint ? `<span class="hint">${esc(f.hint)}</span>` : ''}
+          <span class="err"></span>
+        </div>`;
+    }).join('');
+    $('#formMask').classList.add('open');
+  }
+
+  function closeForm() { $('#formMask').classList.remove('open'); }
+
+  function setFieldErr(key, msg) {
+    const el = document.querySelector(`#formGrid [data-key="${key}"]`);
+    if (!el) return;
+    el.classList.toggle('invalid', !!msg);
+    el.querySelector('.err').textContent = msg || '';
+  }
+
+  function submitForm() {
+    const vals = {};
+    formCtx.fields.forEach(f => { vals[f.key] = $(`#ff-${f.key}`).value.trim(); });
+    let bad = 0;
+    formCtx.fields.forEach(f => {
+      const v = vals[f.key];
+      let msg = null;
+      if (f.req && !v) msg = `请填写${f.label.replace(/（.*）/, '')}`;
+      else if (v && f.check && !f.check.re.test(v)) msg = f.check.msg;
+      else if (v && f.type === 'number' && !(Number(v) > 0)) msg = '请输入大于 0 的数值';
+      setFieldErr(f.key, msg);
+      if (msg) bad++;
+    });
+    if (bad) {
+      $('#formSum').textContent = `还有 ${bad} 项需修正`;
+      $('#formSum').classList.add('show');
+      return;
+    }
+    const err = formCtx.onSave(vals);
+    if (err) {
+      $('#formSum').textContent = err;
+      $('#formSum').classList.add('show');
+      return;
+    }
+    closeForm();
+    renderBody();
+    renderTabs();
+  }
+
+  // ---------- Confirm ----------
+  let confirmOk = null;
+  function openConfirm(title, text, onOk) {
+    $('#cfTitle').textContent = title;
+    $('#cfText').textContent = text;
+    confirmOk = onOk;
+    $('#cfMask').classList.add('open');
+  }
+  function closeConfirm() { $('#cfMask').classList.remove('open'); confirmOk = null; }
+
+  // ---------- Toast ----------
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ---------- Dictionary actions ----------
+  function dictRowsFor(tab) { return DICTS[tab].rows; }
+
+  function openDictForm(row) {
+    const cfg = DICTS[currentTab];
+    openForm({
+      title: row ? `编辑${cfg.label}` : `新增${cfg.label}`,
+      fields: cfg.fields,
+      values: row || { sort: 10 },
+      onSave: (vals) => {
+        if (dictRowsFor(currentTab).some(r => r.code === vals.code && r !== row)) return '编码已存在，请更换';
+        const payload = { ...vals, sort: Number(vals.sort) || 10 };
+        if (row) Object.assign(row, payload);
+        else cfg.rows.push({ id: newId(), on: true, refs: 0, ...payload });
+        return null;
+      }
+    });
+  }
+
+  // ---------- Machine actions ----------
+  function openMachineNew() {
+    openForm({
+      title: '新增机型',
+      fields: MACH_FIELDS_NEW,
+      values: { sort: 10 },
+      onSave: (vals) => {
+        if (MACHINES.some(m => m.code === vals.code)) return '机型标识已存在';
+        const m = { id: newId(), on: true, configs: [], ...vals, sort: Number(vals.sort) || 10 };
+        MACHINES.push(m);
+        selectedMid = m.id;
+        return null;
+      }
+    });
+  }
+
+  function openMachineEdit() {
+    const m = MACHINES.find(x => x.id === selectedMid);
+    openForm({
+      title: '编辑机型',
+      fields: MACH_FIELDS_EDIT,
+      values: { name: m.name, vendor: m.vendor, proj: m.proj, sort: m.sort, status: m.on ? '启用' : '停用', desc: m.desc },
+      onSave: (vals) => {
+        Object.assign(m, { name: vals.name, vendor: vals.vendor, proj: vals.proj, desc: vals.desc, sort: Number(vals.sort) || 10, on: vals.status === '启用' });
+        return null;
+      }
+    });
+  }
+
+  function openConfigForm(cfgRow) {
+    const m = MACHINES.find(x => x.id === selectedMid);
+    openForm({
+      title: cfgRow ? '编辑配置' : '添加配置',
+      fields: CFG_FIELDS,
+      values: cfgRow || { sort: 10 },
+      onSave: (vals) => {
+        if (!!vals.vendor !== !!vals.device) return '显卡厂商号与设备号需成对填写';
+        if (m.configs.some(c => c.code === vals.code && c !== cfgRow)) return '该机型下配置编码已存在';
+        const payload = { ...vals, mem: Number(vals.mem), sort: Number(vals.sort) || 10 };
+        if (cfgRow) Object.assign(cfgRow, payload);
+        else m.configs.push({ id: newId(), ...payload });
+        return null;
+      }
+    });
+  }
+
+  // ---------- Event delegation ----------
+  $('#tabs').addEventListener('click', e => {
+    const t = e.target.closest('[data-tab]');
+    if (!t) return;
+    currentTab = t.dataset.tab;
+    renderTabs();
+    renderBody();
+  });
+
+  $('#tabBody').addEventListener('click', e => {
+    if (e.target.closest('[data-new]')) return openDictForm(null);
+
+    const act = e.target.closest('[data-act]');
+    if (act) {
+      const cfg = DICTS[currentTab];
+      const row = cfg.rows.find(r => r.id === Number(act.dataset.id));
+      if (!row) return;
+      if (act.dataset.act === 'edit') return openDictForm(row);
+      if (act.dataset.act === 'toggle') {
+        row.on = !row.on;
+        renderDict();
+        return;
+      }
+      if (act.dataset.act === 'del') {
+        if (row.refs > 0) return toast(`该版本已被 ${row.refs} 个模型引用，不能删除，可先停用`);
+        openConfirm('确认删除', `将删除客户端版本「${row.name}」，此操作不可恢复。`, () => {
+          cfg.rows.splice(cfg.rows.indexOf(row), 1);
+          renderDict();
+          toast('已删除');
+        });
+      }
+      return;
+    }
+
+    const mItem = e.target.closest('[data-m]');
+    if (mItem) {
+      selectedMid = Number(mItem.dataset.m);
+      renderMachineList();
+      renderMachineDetail();
+      return;
+    }
+    if (e.target.closest('[data-m-new]')) return openMachineNew();
+    if (e.target.closest('[data-m-edit]')) return openMachineEdit();
+    if (e.target.closest('[data-cfg-add]')) return openConfigForm(null);
+
+    const ce = e.target.closest('[data-cfg-edit]');
+    if (ce) {
+      const m = MACHINES.find(x => x.id === selectedMid);
+      return openConfigForm(m.configs.find(c => c.id === Number(ce.dataset.cfgEdit)));
+    }
+    const cd = e.target.closest('[data-cfg-del]');
+    if (cd) {
+      const m = MACHINES.find(x => x.id === selectedMid);
+      const c = m.configs.find(x => x.id === Number(cd.dataset.cfgDel));
+      openConfirm('确认删除', `将删除配置「${c.code}」。若模型已绑定该配置，请先解除绑定。`, () => {
+        m.configs.splice(m.configs.indexOf(c), 1);
+        renderMachineList();
+        renderMachineDetail();
+        toast('已删除配置');
+      });
+    }
+  });
+
+  $('#tabBody').addEventListener('input', e => {
+    if (e.target.id === 'mQuery') renderMachineList();
+  });
+
+  // Form & confirm controls
+  $$('#formMask [data-close]').forEach(b => b.onclick = closeForm);
+  $('#formSave').onclick = submitForm;
+  $('#formMask').addEventListener('click', e => { if (e.target.id === 'formMask') closeForm(); });
+  $('#cfCancel').onclick = closeConfirm;
+  $('#cfOk').onclick = () => { if (confirmOk) confirmOk(); closeConfirm(); };
+  $('#cfMask').addEventListener('click', e => { if (e.target.id === 'cfMask') closeConfirm(); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeForm(); closeConfirm(); }
+  });
+
+  // ---------- Sidebar navigation (shared across all three pages) ----------
+  const NAV_PAGES = {
+    '模型': '运营平台-模型列表设计.html',
+    '推理引擎': '运营平台-推理引擎设计.html',
+    '元数据': '运营平台-元数据设计.html',
+    '使用日志': '运营平台-使用日志设计.html'
+  };
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+    const target = NAV_PAGES[btn.textContent.trim()];
+    if (!target) return;
+    btn.addEventListener('click', () => {
+      if (!location.pathname.endsWith(target)) location.href = target;
+    });
+  });
+
+  renderTabs();
+  renderBody();
+</script>
+</body>
+</html>

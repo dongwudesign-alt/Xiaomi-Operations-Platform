@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小米算力平台-OPS · 使用日志</title>
+<style>
+  :root {
+    --color-primary: #2F7BFF;
+    --color-primary-hover: #1F6AEE;
+    --color-primary-soft: #E4EEFD;
+    --color-bg-app: #FAFAFB;
+    --color-bg-sidebar: #F5F6F8;
+    --color-surface: #FFFFFF;
+    --color-border: #E8EAEE;
+    --color-border-row: #EEF0F3;
+    --color-text-primary: #1F2329;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9AA0A9;
+    --color-danger: #E5484D;
+    --color-danger-soft: #FDECEC;
+    --color-success: #16A34A;
+    --color-success-soft: #E6F7EE;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.04);
+    --shadow-dialog: 0 12px 48px rgba(16,24,40,0.16);
+    --font-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: var(--font-sans); font-size: 14px; line-height: 22px; color: var(--color-text-primary); background: var(--color-bg-app); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; }
+
+  /* ---------- Shell ---------- */
+  .app { display: flex; height: 100vh; min-height: 620px; }
+  .sidebar { width: 200px; flex: none; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border); padding: 20px 12px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .brand-mark { width: 28px; height: 28px; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+  .brand-name { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: var(--radius-md); color: var(--color-text-primary); text-align: left; width: 100%; transition: background-color 150ms ease; }
+  .nav-item:hover { background: #ECEEF2; }
+  .nav-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-group-label { font-size: 12px; color: var(--color-text-tertiary); padding: 16px 12px 6px; }
+  .sidebar-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--color-border); }
+  .account-name { font-size: 13px; font-weight: 500; }
+  .account-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .logout { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); height: 28px; padding: 0 12px; }
+
+  .main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 48px 48px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 8px; }
+  .crumb { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
+  .page-title { font-size: 20px; font-weight: 600; line-height: 28px; }
+  .page-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 20px; max-width: 760px; margin-bottom: 20px; }
+
+  /* ---------- Buttons ---------- */
+  .btn { height: 36px; padding: 0 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background-color 150ms ease; flex: none; }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-primary:hover { background: var(--color-primary-hover); }
+  .btn-ghost { background: #F2F3F5; color: var(--color-text-primary); }
+  .btn-ghost:hover { background: #E7E9ED; }
+  .btn-sec { height: 36px; padding: 0 14px; border-radius: var(--radius-md); background: #F2F3F5; font-size: 14px; }
+  .btn-sec:hover { background: #E7E9ED; }
+  .btn-link { height: 30px; padding: 0 8px; color: var(--color-primary); font-size: 13px; border-radius: var(--radius-md); }
+  .btn-link:hover { background: var(--color-primary-soft); }
+
+  /* ---------- Filters ---------- */
+  .filters { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); padding: 16px 20px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px 16px; margin-bottom: 16px; }
+  .f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .f > label { font-size: 12px; color: var(--color-text-secondary); }
+  .field { height: 36px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: #fff; padding: 0 12px; font-size: 14px; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; }
+  .field::placeholder { color: var(--color-text-tertiary); }
+  .field:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(47,123,255,0.12); }
+  select.field { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%239AA0A9' stroke-width='1.5'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  .range { display: flex; gap: 8px; align-items: center; }
+  .range .field { flex: 1; min-width: 0; }
+  .range span { color: var(--color-text-tertiary); font-size: 12px; }
+  .filter-actions { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 12px; padding-top: 4px; }
+  .quick { display: flex; gap: 8px; align-items: center; }
+  .chip { height: 28px; padding: 0 12px; border-radius: var(--radius-pill); font-size: 12px; background: #fff; border: 1px solid var(--color-border); color: #4B5563; }
+  .chip:hover { background: #F5F6F8; }
+  .chip.on { background: var(--color-primary-soft); border-color: transparent; color: var(--color-primary); font-weight: 500; }
+  .actions { display: flex; gap: 8px; }
+  .filter-label { font-size: 12px; color: var(--color-text-tertiary); margin-right: 4px; }
+
+  /* ---------- Table ---------- */
+  .panel { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid var(--color-border-row); font-size: 12px; color: var(--color-text-tertiary); }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); height: 40px; padding: 0 14px; background: #FAFBFC; border-bottom: 1px solid var(--color-border-row); white-space: nowrap; }
+  td { padding: 10px 14px; height: 52px; border-bottom: 1px solid var(--color-border-row); vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: #FAFBFC; }
+  .strong { font-weight: 500; }
+  .sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .muted { color: var(--color-text-secondary); }
+  .num { font-variant-numeric: tabular-nums; }
+  .tag { height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .tag.ok { background: var(--color-success-soft); color: var(--color-success); }
+  .tag.err { background: var(--color-danger-soft); color: var(--color-danger); }
+  .tag.warn { background: #FEF3C7; color: #B45309; }
+  .badge { height: 20px; padding: 0 8px; border-radius: 4px; font-size: 12px; background: var(--color-primary-soft); color: var(--color-primary); display: inline-flex; align-items: center; }
+  .pager { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; border-top: 1px solid var(--color-border-row); font-size: 12px; color: var(--color-text-tertiary); }
+  .pager-btns { display: flex; gap: 6px; }
+  .pg { min-width: 30px; height: 30px; padding: 0 8px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-text-secondary); }
+  .pg:hover { background: #F2F3F5; }
+  .pg.on { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+  .empty-note { padding: 40px 24px; text-align: center; font-size: 13px; color: var(--color-text-tertiary); }
+
+  /* ---------- Modal ---------- */
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: grid; place-items: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 200ms ease; z-index: 50; }
+  .mask.open { opacity: 1; pointer-events: auto; }
+  .dialog { width: 680px; max-width: 100%; max-height: min(600px, 80vh); background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-dialog); display: flex; flex-direction: column; overflow: hidden; transform: translateY(8px); transition: transform 200ms ease; }
+  .mask.open .dialog { transform: translateY(0); }
+  .dlg-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 18px 24px; border-bottom: 1px solid var(--color-border-row); flex: none; }
+  .dlg-title { font-size: 18px; font-weight: 600; line-height: 26px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: var(--radius-md); display: grid; place-items: center; color: var(--color-text-secondary); flex: none; }
+  .icon-btn:hover { background: #ECEEF2; }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .dlg-body { flex: 1; overflow-y: auto; min-height: 0; padding: 20px 24px; }
+  .dlg-foot { flex: none; padding: 14px 24px; border-top: 1px solid var(--color-border-row); display: flex; justify-content: flex-end; gap: 8px; background: #fff; }
+  .kv { display: grid; grid-template-columns: 110px 1fr; gap: 0; border: 1px solid var(--color-border-row); border-radius: var(--radius-lg); overflow: hidden; }
+  .kv > div { padding: 10px 14px; border-bottom: 1px solid var(--color-border-row); font-size: 13px; }
+  .kv > div:nth-last-child(-n+2) { border-bottom: 0; }
+  .kv .k { color: var(--color-text-tertiary); background: #FAFBFC; }
+  .kv .v { color: var(--color-text-primary); word-break: break-all; }
+  .code { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; background: #F5F6F8; border-radius: var(--radius-md); padding: 12px 14px; line-height: 20px; white-space: pre-wrap; word-break: break-all; color: #374151; }
+  .sec-title { font-size: 13px; font-weight: 600; margin: 18px 0 8px; }
+  .sec-title:first-child { margin-top: 0; }
+  .err-box { background: var(--color-danger-soft); color: var(--color-danger); border-radius: var(--radius-md); padding: 10px 14px; font-size: 12px; line-height: 18px; margin-bottom: 4px; }
+
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: var(--color-text-primary); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: var(--radius-md); opacity: 0; transition: all 200ms ease; pointer-events: none; z-index: 60; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">MI</div>
+      <div>
+        <div class="brand-name">小米算力平台-OPS</div>
+        <div class="brand-sub">运营控制台</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+        模型
+      </button>
+    </nav>
+
+    <div class="nav-group-label">业务</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+        推理引擎
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h12M4 10h12M4 15h8"/></svg>
+        元数据
+      </button>
+      <button class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h6l3 3v11H6z"/><path d="M8 10h5M8 13h4"/></svg>
+        使用日志
+      </button>
+    </nav>
+
+    <div class="nav-group-label">管控</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 10.5l3 3 7-7"/></svg>
+        审批
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg>
+        用户
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3l6 2.5v4.5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5.5z"/></svg>
+        角色权限
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="account-name">系统管理员</div>
+      <div class="account-meta">admin · 本地</div>
+      <button class="logout nav-item">退出</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <div class="crumb">审计 / 使用日志</div>
+        <h1 class="page-title">使用日志</h1>
+      </div>
+    </header>
+    <p class="page-desc">记录模型与推理引擎的调用行为及用户关键操作，用于排障、用量统计与安全审计。日志只读，仅支持查询、查看与导出。</p>
+
+    <section class="filters">
+      <div class="f">
+        <label>时间范围</label>
+        <div class="range">
+          <input class="field" type="date" id="dFrom" value="2026-11-14">
+          <span>至</span>
+          <input class="field" type="date" id="dTo" value="2026-11-20">
+        </div>
+      </div>
+      <div class="f">
+        <label>操作用户</label>
+        <select class="field" id="fUser">
+          <option value="">全部用户</option>
+          <option>admin</option>
+          <option>ops-zhang</option>
+          <option>ops-li</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>模型</label>
+        <select class="field" id="fModel">
+          <option value="">全部模型</option>
+          <option>Qwen3.6-35B-A3B</option>
+          <option>Qwen3.5-9B</option>
+          <option>Edge-TTS-X</option>
+          <option>FastContext-1.0</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>推理平台</label>
+        <select class="field" id="fPlat">
+          <option value="">全部平台</option>
+          <option>OpenVINO</option>
+          <option>llama.cpp</option>
+          <option>sherpa-onnx</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>适配机型</label>
+        <select class="field" id="fMach">
+          <option value="">全部机型</option>
+          <option>旗舰（大核显）</option>
+          <option>主流 32G</option>
+          <option>主流 24G</option>
+          <option>入门 16G</option>
+          <option>小米笔记本 Pro 16</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>客户端版本</label>
+        <select class="field" id="fClient">
+          <option value="">全部版本</option>
+          <option>1.0.0</option>
+          <option>1.2.0</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>行为类型</label>
+        <select class="field" id="fAct">
+          <option value="">全部行为</option>
+          <option>推理调用</option>
+          <option>模型加载</option>
+          <option>模型上架</option>
+          <option>引擎上架</option>
+          <option>用户操作</option>
+        </select>
+      </div>
+      <div class="f">
+        <label>结果状态</label>
+        <select class="field" id="fStatus">
+          <option value="">全部状态</option>
+          <option value="ok">成功</option>
+          <option value="err">失败</option>
+          <option value="warn">超时</option>
+        </select>
+      </div>
+
+      <div class="filter-actions">
+        <div class="quick">
+          <span class="filter-label">快捷</span>
+          <button class="chip" data-range="1">今天</button>
+          <button class="chip on" data-range="7">近 7 天</button>
+          <button class="chip" data-range="30">近 30 天</button>
+          <button class="chip" data-range="0" id="onlyErr">仅失败</button>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost" id="btnReset">重置</button>
+          <button class="btn btn-sec" id="btnExport">导出</button>
+          <button class="btn btn-primary" id="btnQuery">查询</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <span id="resultInfo"></span>
+        <span>默认按时间倒序 · 只读审计</span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>时间</th>
+            <th>操作用户</th>
+            <th>模型</th>
+            <th>推理平台</th>
+            <th>适配机型</th>
+            <th>客户端版本</th>
+            <th>行为类型</th>
+            <th>结果</th>
+            <th>耗时</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="pager">
+        <span id="pagerInfo"></span>
+        <div class="pager-btns" id="pager"></div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Detail modal -->
+<div class="mask" id="detailMask">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <header class="dlg-head">
+      <div class="dlg-title">日志详情</div>
+      <button class="icon-btn" data-close aria-label="关闭">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+    <div class="dlg-body" id="detailBody"></div>
+    <footer class="dlg-foot">
+      <button class="btn btn-ghost" data-close>关闭</button>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  const RESULT = {
+    ok:   { label: '成功', cls: 'ok' },
+    err:  { label: '失败', cls: 'err' },
+    warn: { label: '超时', cls: 'warn' }
+  };
+
+  // Sample records; fields follow the spec (sku_code, device.platform, config code, error stack)
+  const LOGS = [
+    { id: 'L-240001', time: '2026-11-20 09:41:12', user: 'admin', model: 'Qwen3.6-35B-A3B', mver: '2026.5.0', plat: 'OpenVINO', mach: '旗舰（大核显）', cfg: 'X7-458H-32G', sku: 'X7-458H-32G', devPlat: 'PTL', client: '1.2.0', act: '推理调用', res: 'ok', dur: '1.82 s', mem: '32 GiB', gpu: '大核显', strength: '自动', engine: 'OpenVINO ovms 2026.4.1', req: '{"model":"Qwen3.6-35B-A3B","messages":[{"role":"user","content":"总结这份会议纪要"}],"stream":true}', resp: '{"finish_reason":"stop","tokens":412}', err: '' },
+    { id: 'L-240002', time: '2026-11-20 09:38:05', user: 'ops-zhang', model: 'FastContext-1.0', mver: '1.0.0', plat: 'llama.cpp', mach: '入门 16G', cfg: 'U5-425-16G', sku: 'U5-425-16G', devPlat: '', client: '1.0.0', act: '模型加载', res: 'err', dur: '6.40 s', mem: '16 GiB', gpu: '集显', strength: '—', engine: 'OpenVINO ovms 2026.4.1', req: '{"action":"load","model":"FastContext-1.0","quant":"Q4_K_M"}', resp: '', err: 'OutOfMemoryError: 需要 18.2 GiB，可用 14.6 GiB\n  at loader.allocate (loader.cpp:218)\n  at engine.load (engine.cpp:94)' },
+    { id: 'L-240003', time: '2026-11-20 09:12:47', user: 'ops-li', model: 'Edge-TTS-X', mver: '1.2.0', plat: 'sherpa-onnx', mach: '主流 24G', cfg: 'U5-425-24G', sku: 'U5-425-24G', devPlat: 'PTL', client: '1.2.0', act: '推理调用', res: 'warn', dur: '30.00 s', mem: '24 GiB', gpu: '集显', strength: '低', engine: 'ONNX Runtime ort 1.18.0', req: '{"voice":"知性女声","speed":1.0,"text":"欢迎使用小米算力平台"}', resp: '', err: 'TimeoutError: 推理请求 30s 未返回\n  at tts.synthesize (tts.py:61)' },
+    { id: 'L-240004', time: '2026-11-19 18:03:21', user: 'admin', model: 'Qwen3.5-9B', mver: '2026.3.1', plat: 'llama.cpp', mach: '主流 32G', cfg: 'U5-425-32G', sku: 'U5-425-32G', devPlat: 'PTL', client: '1.0.0', act: '模型上架', res: 'ok', dur: '0.31 s', mem: '32 GiB', gpu: '集显', strength: '中', engine: 'OpenVINO ovms 2026.4.1', req: '{"action":"publish","model":"Qwen3.5-9B","version":"2026.3.1"}', resp: '{"status":"已上架"}', err: '' },
+    { id: 'L-240005', time: '2026-11-19 14:27:56', user: 'ops-zhang', model: 'Qwen3.6-35B-A3B', mver: '2026.5.0', plat: 'OpenVINO', mach: '小米笔记本 Pro 16', cfg: 'M16-32G', sku: 'M16-32G', devPlat: '', client: '1.2.0', act: '推理调用', res: 'ok', dur: '2.36 s', mem: '32 GiB', gpu: '大核显', strength: '高', engine: 'OpenVINO ovms 2026.4.1', req: '{"model":"Qwen3.6-35B-A3B","messages":[{"role":"user","content":"帮我写一段 Python 排序"}],"stream":true}', resp: '{"finish_reason":"stop","tokens":268}', err: '' },
+    { id: 'L-240006', time: '2026-11-19 11:15:30', user: 'ops-li', model: 'FastContext-1.0', mver: '1.0.0', plat: 'llama.cpp', mach: '入门 16G', cfg: 'M16-16G', sku: 'M16-16G', devPlat: '', client: '1.0.0', act: '推理调用', res: 'err', dur: '0.92 s', mem: '16 GiB', gpu: '集显', strength: '关', engine: 'ONNX Runtime ort 1.18.0', req: '{"model":"FastContext-1.0","messages":[{"role":"user","content":"解释这段代码"}]}', resp: '', err: 'ModelNotLoaded: 模型未加载，请先在模型管理中启用' },
+    { id: 'L-240007', time: '2026-11-18 16:44:09', user: 'admin', model: 'Whisper-Large-v3', mver: '3.0.2', plat: 'sherpa-onnx', mach: '主流 24G', cfg: 'U5-425-24G', sku: 'U5-425-24G', devPlat: 'PTL', client: '1.2.0', act: '用户操作', res: 'ok', dur: '—', mem: '—', gpu: '—', strength: '—', engine: '—', req: '{"op":"吊销引擎版本","target":"ONNX Runtime ort 1.17.2"}', resp: '{"status":"已下架"}', err: '' },
+    { id: 'L-240008', time: '2026-11-18 10:02:18', user: 'ops-zhang', model: 'Qwen3.5-9B', mver: '2026.3.1', plat: 'OpenVINO', mach: '旗舰（大核显）', cfg: 'X7-458H-32G', sku: 'X7-458H-32G', devPlat: 'PTL', client: '1.2.0', act: '推理调用', res: 'ok', dur: '1.05 s', mem: '32 GiB', gpu: '大核显', strength: '自动', engine: 'OpenVINO ovms 2026.4.1', req: '{"model":"Qwen3.5-9B","messages":[{"role":"user","content":"生成周报"}],"stream":false}', resp: '{"finish_reason":"stop","tokens":196}', err: '' },
+    { id: 'L-240009', time: '2026-11-17 21:30:44', user: 'admin', model: 'Granite-4.1-30B', mver: '4.1.0', plat: 'llama.cpp', mach: '旗舰（大核显）', cfg: 'X7-458H-32G', sku: 'X7-458H-32G', devPlat: '', client: '1.0.0', act: '模型上架', res: 'err', dur: '4.12 s', mem: '32 GiB', gpu: '大核显', strength: '—', engine: 'OpenVINO ovms 2026.4.1', req: '{"action":"publish","model":"Granite-4.1-30B"}', resp: '', err: 'ValidationError: 文件头校验失败（magic 不匹配）' },
+    { id: 'L-240010', time: '2026-11-17 09:20:03', user: 'ops-li', model: 'Edge-TTS-X', mver: '1.2.0', plat: 'sherpa-onnx', mach: '主流 32G', cfg: 'U5-425-32G', sku: 'U5-425-32G', devPlat: 'PTL', client: '1.2.0', act: '推理调用', res: 'ok', dur: '0.48 s', mem: '32 GiB', gpu: '集显', strength: '低', engine: 'ONNX Runtime ort 1.18.0', req: '{"voice":"知性女声","speed":1.2,"text":"今天天气不错"}', resp: '{"audio_ms":2100}', err: '' },
+    { id: 'L-240011', time: '2026-11-16 15:08:37', user: 'ops-zhang', model: 'FastContext-1.0', mver: '1.0.0', plat: 'llama.cpp', mach: '主流 24G', cfg: 'U5-425-24G', sku: 'U5-425-24G', devPlat: 'PTL', client: '1.0.0', act: '推理调用', res: 'warn', dur: '30.00 s', mem: '24 GiB', gpu: '集显', strength: '超高', engine: 'ONNX Runtime ort 1.18.0', req: '{"model":"FastContext-1.0","messages":[{"role":"user","content":"长文档摘要"}],"stream":true}', resp: '', err: 'TimeoutError: 推理请求 30s 未返回\n  at engine.generate (engine.cpp:140)' },
+    { id: 'L-240012', time: '2026-11-15 14:14:52', user: 'admin', model: 'Qwen3.6-35B-A3B', mver: '2026.5.0', plat: 'OpenVINO', mach: '主流 32G', cfg: 'U5-425-32G', sku: 'U5-425-32G', devPlat: 'PTL', client: '1.2.0', act: '引擎上架', res: 'ok', dur: '0.27 s', mem: '—', gpu: '—', strength: '—', engine: 'OpenVINO ovms 2026.5.0', req: '{"action":"publish","engine":"OpenVINO ovms","version":"2026.5.0"}', resp: '{"status":"已上架"}', err: '' }
+  ];
+
+  const PAGE_SIZE = 8;
+  let page = 1;
+  let rangeDays = 7;
+  let onlyErr = false;
+  let rows = [];
+
+  // ---------- Filtering ----------
+  function getFilters() {
+    return {
+      from: $('#dFrom').value, to: $('#dTo').value,
+      user: $('#fUser').value, model: $('#fModel').value, plat: $('#fPlat').value,
+      mach: $('#fMach').value, client: $('#fClient').value, act: $('#fAct').value, res: $('#fStatus').value
+    };
+  }
+
+  function applyFilters() {
+    const f = getFilters();
+    rows = LOGS.filter(r =>
+      (!f.from || r.time.slice(0, 10) >= f.from) &&
+      (!f.to || r.time.slice(0, 10) <= f.to) &&
+      (!f.user || r.user === f.user) &&
+      (!f.model || r.model === f.model) &&
+      (!f.plat || r.plat === f.plat) &&
+      (!f.mach || r.mach === f.mach) &&
+      (!f.client || r.client === f.client) &&
+      (!f.act || r.act === f.act) &&
+      (!f.res || r.res === f.res) &&
+      (!onlyErr || r.res !== 'ok')
+    );
+    page = 1;
+    render();
+    toast(`共命中 ${rows.length} 条日志`);
+  }
+
+  // ---------- Render ----------
+  function render() {
+    const total = rows.length;
+    const pages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+    page = Math.min(page, pages);
+    const slice = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+    $('#resultInfo').textContent = `结果 ${total} 条`;
+    $('#rows').innerHTML = slice.length ? slice.map(r => `
+      <tr>
+        <td class="num muted">${esc(r.time)}</td>
+        <td class="strong">${esc(r.user)}</td>
+        <td><div class="strong">${esc(r.model)}</div><div class="sub">${esc(r.mver)}</div></td>
+        <td>${esc(r.plat)}</td>
+        <td class="muted">${esc(r.mach)}</td>
+        <td class="num">${esc(r.client)}</td>
+        <td>${esc(r.act)}</td>
+        <td><span class="tag ${RESULT[r.res].cls}">${RESULT[r.res].label}</span></td>
+        <td class="num muted">${esc(r.dur)}</td>
+        <td><button class="btn-link" data-detail="${r.id}">查看详情</button></td>
+      </tr>`).join('')
+      : `<tr><td colspan="10"><div class="empty-note">没有符合条件的日志，可调整时间范围或筛选条件</div></td></tr>`;
+
+    const start = total ? (page - 1) * PAGE_SIZE + 1 : 0;
+    const end = Math.min(page * PAGE_SIZE, total);
+    $('#pagerInfo').textContent = `显示 ${start}–${end} / ${total} 条`;
+    $('#pager').innerHTML = [
+      `<button class="pg" data-page="${page - 1}" ${page <= 1 ? 'disabled style="opacity:.4"' : ''}>上一页</button>`,
+      ...Array.from({ length: pages }, (_, i) => `<button class="pg ${i + 1 === page ? 'on' : ''}" data-page="${i + 1}">${i + 1}</button>`),
+      `<button class="pg" data-page="${page + 1}" ${page >= pages ? 'disabled style="opacity:.4"' : ''}>下一页</button>`
+    ].join('');
+  }
+
+  // ---------- Quick range ----------
+  function setRange(days) {
+    rangeDays = days;
+    const end = new Date('2026-11-20T00:00:00');
+    const start = new Date(end);
+    start.setDate(end.getDate() - Math.max(days - 1, 0));
+    const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    $('#dFrom').value = fmt(start);
+    $('#dTo').value = fmt(end);
+    $$('.chip[data-range]').forEach(c => c.classList.toggle('on', Number(c.dataset.range) === days));
+  }
+
+  $$('.chip[data-range]').forEach(c => c.addEventListener('click', () => {
+    if (c.id === 'onlyErr') return;
+    setRange(Number(c.dataset.range));
+    applyFilters();
+  }));
+
+  $('#onlyErr').addEventListener('click', () => {
+    onlyErr = !onlyErr;
+    $('#onlyErr').classList.toggle('on', onlyErr);
+    applyFilters();
+  });
+
+  $('#btnQuery').onclick = applyFilters;
+
+  $('#btnReset').onclick = () => {
+    $$('#fUser, #fModel, #fPlat, #fMach, #fClient, #fAct, #fStatus').forEach(s => s.value = '');
+    onlyErr = false;
+    $('#onlyErr').classList.remove('on');
+    setRange(7);
+    applyFilters();
+  };
+
+  $('#btnExport').onclick = () => {
+    toast(`已生成导出文件：使用日志_${rows.length}条.csv（原型仅提示）`);
+  };
+
+  // ---------- Pagination ----------
+  $('#pager').addEventListener('click', e => {
+    const b = e.target.closest('[data-page]');
+    if (!b || b.disabled) return;
+    page = Number(b.dataset.page);
+    render();
+  });
+
+  // ---------- Detail ----------
+  $('#rows').addEventListener('click', e => {
+    const b = e.target.closest('[data-detail]');
+    if (!b) return;
+    const r = LOGS.find(x => x.id === b.dataset.detail);
+    if (!r) return;
+    const ok = r.res === 'ok';
+    $('#detailBody').innerHTML = `
+      <div class="kv">
+        <div class="k">日志编号</div><div class="v num">${esc(r.id)}</div>
+        <div class="k">时间</div><div class="v num">${esc(r.time)}</div>
+        <div class="k">操作用户</div><div class="v">${esc(r.user)}</div>
+        <div class="k">行为类型</div><div class="v">${esc(r.act)}</div>
+        <div class="k">结果</div><div class="v"><span class="tag ${RESULT[r.res].cls}">${RESULT[r.res].label}</span></div>
+        <div class="k">耗时</div><div class="v num">${esc(r.dur)}</div>
+      </div>
+
+      <div class="sec-title">模型与引擎</div>
+      <div class="kv">
+        <div class="k">模型</div><div class="v">${esc(r.model)} <span class="badge">${esc(r.mver)}</span></div>
+        <div class="k">推理平台</div><div class="v">${esc(r.plat)}</div>
+        <div class="k">引擎版本</div><div class="v">${esc(r.engine)}</div>
+        <div class="k">推理强度</div><div class="v">${esc(r.strength)}</div>
+      </div>
+
+      <div class="sec-title">设备匹配</div>
+      <div class="kv">
+        <div class="k">适配机型</div><div class="v">${esc(r.mach)}</div>
+        <div class="k">配置编码</div><div class="v num">${esc(r.cfg)}</div>
+        <div class="k">sku_code</div><div class="v num">${esc(r.sku)}</div>
+        <div class="k">device.platform</div><div class="v num">${r.devPlat ? esc(r.devPlat) : '—'}</div>
+        <div class="k">内存 / 显卡</div><div class="v">${esc(r.mem)} · ${esc(r.gpu)}</div>
+        <div class="k">客户端版本</div><div class="v num">${esc(r.client)}</div>
+      </div>
+
+      ${ok ? '' : `<div class="sec-title">错误信息</div><div class="err-box">${esc(r.err)}</div>`}
+
+      <div class="sec-title">请求报文</div>
+      <div class="code">${esc(r.req)}</div>
+
+      ${r.resp ? `<div class="sec-title">返回结果</div><div class="code">${esc(r.resp)}</div>` : ''}
+    `;
+    $('#detailMask').classList.add('open');
+  });
+
+  $$('[data-close]').forEach(b => b.onclick = () => $('#detailMask').classList.remove('open'));
+  $('#detailMask').addEventListener('click', e => { if (e.target.id === 'detailMask') $('#detailMask').classList.remove('open'); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('#detailMask').classList.remove('open'); });
+
+  // ---------- Toast ----------
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ---------- Sidebar navigation (shared across all four pages) ----------
+  const NAV_PAGES = {
+    '模型': '运营平台-模型列表设计.html',
+    '推理引擎': '运营平台-推理引擎设计.html',
+    '元数据': '运营平台-元数据设计.html',
+    '使用日志': '运营平台-使用日志设计.html'
+  };
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+    const target = NAV_PAGES[btn.textContent.trim()];
+    if (!target) return;
+    btn.addEventListener('click', () => {
+      if (!location.pathname.endsWith(target)) location.href = target;
+    });
+  });
+
+  setRange(7);
+  applyFilters();
+</script>
+</body>
+</html>

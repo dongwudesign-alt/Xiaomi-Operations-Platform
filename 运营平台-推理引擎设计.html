@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小米算力平台-OPS · 推理引擎</title>
+<style>
+  :root {
+    --color-primary: #2F7BFF;
+    --color-primary-hover: #1F6AEE;
+    --color-primary-soft: #E4EEFD;
+    --color-bg-app: #FAFAFB;
+    --color-bg-sidebar: #F5F6F8;
+    --color-surface: #FFFFFF;
+    --color-border: #E8EAEE;
+    --color-border-row: #EEF0F3;
+    --color-text-primary: #1F2329;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9AA0A9;
+    --color-danger: #E5484D;
+    --color-danger-soft: #FDECEC;
+    --color-success: #16A34A;
+    --color-success-soft: #E6F7EE;
+    --chart-blue: #3B82F6;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.04);
+    --shadow-dialog: 0 12px 48px rgba(16,24,40,0.16);
+    --font-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: var(--font-sans); font-size: 14px; line-height: 22px; color: var(--color-text-primary); background: var(--color-bg-app); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; }
+
+  /* ---------- Shell ---------- */
+  .app { display: flex; height: 100vh; min-height: 620px; }
+  .sidebar { width: 200px; flex: none; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border); padding: 20px 12px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .brand-mark { width: 28px; height: 28px; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+  .brand-name { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: var(--radius-md); color: var(--color-text-primary); text-align: left; width: 100%; transition: background-color 150ms ease; }
+  .nav-item:hover { background: #ECEEF2; }
+  .nav-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-group-label { font-size: 12px; color: var(--color-text-tertiary); padding: 16px 12px 6px; }
+  .sidebar-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--color-border); }
+  .account-name { font-size: 13px; font-weight: 500; }
+  .account-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .logout { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); height: 28px; padding: 0 12px; }
+
+  .main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 48px 48px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+  .crumb { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
+  .page-title { font-size: 20px; font-weight: 600; line-height: 28px; }
+  .head-actions { display: flex; align-items: center; gap: 16px; }
+
+  .seg-switch { display: inline-flex; padding: 2px; border-radius: var(--radius-pill); background: #ECEEF2; font-size: 12px; }
+  .seg-switch button { height: 26px; padding: 0 12px; border-radius: var(--radius-pill); color: var(--color-text-secondary); }
+  .seg-switch button.on { background: #fff; color: var(--color-text-primary); box-shadow: 0 1px 2px rgba(16,24,40,0.08); font-weight: 500; }
+
+  .btn { height: 36px; padding: 0 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background-color 150ms ease; }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-primary:hover { background: var(--color-primary-hover); }
+  .btn-ghost { background: #F2F3F5; color: var(--color-text-primary); }
+  .btn-ghost:hover { background: #E7E9ED; }
+
+  .btn-link { height: 30px; padding: 0 8px; color: var(--color-primary); font-size: 13px; border-radius: var(--radius-md); }
+  .btn-link:hover { background: var(--color-primary-soft); }
+  .btn-link.danger { color: var(--color-danger); }
+  .btn-link.danger:hover { background: var(--color-danger-soft); }
+
+  /* ---------- Flow strip ---------- */
+  .flow { background: var(--color-surface); border-radius: var(--radius-lg); box-shadow: var(--shadow-card); padding: 16px 20px; display: flex; align-items: center; gap: 24px; flex-wrap: wrap; margin-bottom: 16px; }
+  .flow-steps { display: flex; align-items: center; gap: 8px; }
+  .step { height: 26px; padding: 0 10px; border-radius: var(--radius-sm); font-size: 12px; display: inline-flex; align-items: center; background: #F2F3F5; color: var(--color-text-secondary); }
+  .step.s-up { background: #EAF2FF; color: #2F7BFF; }
+  .step.s-check { background: #FEF3C7; color: #B45309; }
+  .step.s-wait { background: #EDE9FE; color: #6D28D9; }
+  .step.s-on { background: var(--color-success-soft); color: var(--color-success); }
+  .arrow { color: var(--color-text-tertiary); font-size: 12px; }
+  .flow-rule { font-size: 12px; color: var(--color-text-secondary); flex: 1; min-width: 280px; line-height: 20px; }
+
+  /* ---------- Panel / filters / table ---------- */
+  .panel { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+  .filters { display: flex; align-items: center; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--color-border-row); }
+  .select { height: 36px; min-width: 180px; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: #fff; padding: 0 32px 0 12px; font-size: 14px; outline: none; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%239AA0A9' stroke-width='1.5'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  .select:focus, .field-input:focus, .field-select:focus, .field-textarea:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(47,123,255,0.12); outline: none; }
+  .filter-spacer { flex: 1; }
+  .filter-summary { font-size: 12px; color: var(--color-text-tertiary); }
+
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); height: 40px; padding: 0 16px; background: #FAFBFC; border-bottom: 1px solid var(--color-border-row); white-space: nowrap; }
+  td { height: 56px; padding: 8px 16px; border-bottom: 1px solid var(--color-border-row); vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: #FAFBFC; }
+  .engine-name { font-weight: 500; }
+  .engine-id { font-size: 12px; color: var(--color-text-tertiary); }
+  .muted { color: var(--color-text-secondary); }
+  .num { font-variant-numeric: tabular-nums; }
+  .reason { font-size: 12px; color: var(--color-danger); margin-top: 2px; }
+  .ops { display: flex; gap: 2px; }
+  .tag { height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .tag.check { background: #FEF3C7; color: #B45309; }
+  .tag.fail { background: var(--color-danger-soft); color: var(--color-danger); }
+  .tag.wait { background: #EDE9FE; color: #6D28D9; }
+  .tag.on { background: var(--color-success-soft); color: var(--color-success); }
+  .tag.off { background: #F0F1F3; color: var(--color-text-secondary); }
+
+  .empty { padding: 56px 24px 64px; text-align: center; }
+  .empty-art { width: 56px; height: 56px; margin: 0 auto 16px; border-radius: var(--radius-lg); background: var(--color-primary-soft); display: grid; place-items: center; color: var(--color-primary); }
+  .empty-art svg { width: 26px; height: 26px; }
+  .empty-title { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+  .empty-desc { font-size: 13px; color: var(--color-text-secondary); max-width: 420px; margin: 0 auto 20px; }
+  .table-foot { display: flex; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--color-border-row); font-size: 12px; color: var(--color-text-tertiary); }
+
+  /* ---------- Modal base ---------- */
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: grid; place-items: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 200ms ease; z-index: 50; }
+  .mask.open { opacity: 1; pointer-events: auto; }
+  .dialog { width: 640px; max-width: 100%; max-height: min(600px, 80vh); background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-dialog); display: flex; flex-direction: column; overflow: hidden; transform: translateY(8px); transition: transform 200ms ease; }
+  .mask.open .dialog { transform: translateY(0); }
+  .dlg-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 24px 16px; border-bottom: 1px solid var(--color-border-row); flex: none; }
+  .dlg-title { font-size: 18px; font-weight: 600; line-height: 26px; }
+  .dlg-sub { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: var(--radius-md); display: grid; place-items: center; color: var(--color-text-secondary); flex: none; }
+  .icon-btn:hover { background: #ECEEF2; }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .dlg-body { flex: 1; overflow-y: auto; min-height: 0; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .dlg-foot { flex: none; padding: 14px 24px; border-top: 1px solid var(--color-border-row); display: flex; align-items: center; justify-content: space-between; gap: 12px; background: #fff; }
+  .err-sum { font-size: 12px; color: var(--color-danger); display: none; }
+  .err-sum.show { display: block; }
+  .foot-actions { display: flex; gap: 8px; margin-left: auto; }
+
+  .notice { background: #F2F7FF; border-radius: var(--radius-md); padding: 12px 14px; font-size: 12px; color: var(--color-text-secondary); line-height: 20px; }
+  .notice strong { color: var(--color-text-primary); font-weight: 500; }
+
+  /* ---------- Form ---------- */
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .full { grid-column: 1 / -1; }
+  .f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .f > label { font-size: 13px; font-weight: 500; }
+  .req { color: var(--color-danger); margin-right: 2px; }
+  .hint { font-size: 12px; color: var(--color-text-tertiary); line-height: 18px; }
+  .err { display: none; font-size: 12px; color: var(--color-danger); line-height: 18px; }
+  .f.invalid .err { display: block; }
+  .f.invalid .field-input, .f.invalid .field-select, .f.invalid .field-textarea { border-color: var(--color-danger); }
+  .f.invalid .dropzone { border-color: var(--color-danger); }
+
+  .field-input, .field-select, .field-textarea { width: 100%; height: 36px; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: #fff; padding: 0 12px; font-size: 14px; transition: border-color 150ms ease, box-shadow 150ms ease; }
+  .field-input[readonly] { background: #F5F6F8; color: var(--color-text-secondary); }
+  .field-input[type=number] { font-variant-numeric: tabular-nums; }
+  .field-textarea { height: 72px; padding: 8px 12px; resize: vertical; line-height: 20px; }
+  .field-input::placeholder, .field-textarea::placeholder { color: var(--color-text-tertiary); }
+  .field-select { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%239AA0A9' stroke-width='1.5'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+
+  .dropzone { border: 1px dashed #C9CED6; border-radius: var(--radius-lg); background: #FAFBFC; padding: 16px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+  .dz-title { font-size: 14px; font-weight: 500; }
+  .dz-desc { font-size: 12px; color: var(--color-text-tertiary); margin-top: 2px; }
+  .link-btn { height: 30px; padding: 0 12px; border-radius: var(--radius-md); font-size: 13px; color: var(--color-primary); background: #fff; border: 1px solid var(--color-border); flex: none; }
+  .link-btn:hover { background: var(--color-primary-soft); border-color: transparent; }
+  .file-box { display: none; margin-top: 10px; padding: 12px 14px; border-radius: var(--radius-md); background: #F5F6F8; font-size: 12px; }
+  .file-box.show { display: block; }
+  .file-row { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; }
+  .file-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .file-meta { color: var(--color-text-tertiary); flex: none; }
+  .bar { height: 4px; border-radius: var(--radius-pill); background: #EEF0F3; margin: 8px 0 6px; overflow: hidden; }
+  .bar span { display: block; height: 100%; width: 0; background: var(--chart-blue); border-radius: inherit; transition: width 80ms linear; }
+  .sha-line { color: var(--color-text-secondary); }
+  .sha-line code { font-family: ui-monospace, Menlo, Consolas, monospace; color: var(--color-text-primary); }
+
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { height: 28px; padding: 0 12px; border-radius: var(--radius-pill); font-size: 12px; background: #fff; border: 1px solid var(--color-border); color: #4B5563; transition: background-color 150ms ease; }
+  .chip:hover { background: #F5F6F8; }
+  .chip.on { background: var(--color-primary-soft); border-color: transparent; color: var(--color-primary); font-weight: 500; }
+
+  /* Confirm */
+  .confirm { width: 400px; padding: 24px; }
+  .confirm .dlg-title { margin-bottom: 8px; }
+  .confirm p { font-size: 13px; color: var(--color-text-secondary); line-height: 20px; }
+  .confirm .dlg-foot { border: 0; padding: 0; margin-top: 20px; background: none; }
+  .btn-danger { background: var(--color-danger); color: #fff; }
+  .btn-danger:hover { background: #D03A3F; }
+
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: var(--color-text-primary); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: var(--radius-md); opacity: 0; transition: all 200ms ease; pointer-events: none; z-index: 60; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">MI</div>
+      <div>
+        <div class="brand-name">小米算力平台-OPS</div>
+        <div class="brand-sub">运营控制台</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+        模型
+      </button>
+    </nav>
+
+    <div class="nav-group-label">业务</div>
+    <nav class="nav">
+      <button class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+        推理引擎
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h12M4 10h12M4 15h8"/></svg>
+        元数据
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h6l3 3v11H6z"/><path d="M8 10h5M8 13h4"/></svg>
+        使用日志
+      </button>
+    </nav>
+
+    <div class="nav-group-label">管控</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 10.5l3 3 7-7"/></svg>
+        审批
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg>
+        用户
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3l6 2.5v4.5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5.5z"/></svg>
+        角色权限
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="account-name">系统管理员</div>
+      <div class="account-meta">admin · 本地</div>
+      <button class="logout nav-item">退出</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <div class="crumb">运行时 / 推理引擎</div>
+        <h1 class="page-title">推理引擎</h1>
+      </div>
+      <div class="head-actions">
+        <div class="seg-switch" role="group" aria-label="预览数据">
+          <button id="sw-empty">空数据</button>
+          <button id="sw-data" class="on">示例数据</button>
+        </div>
+        <button class="btn btn-primary" id="openUpload">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v10M2 7h10"/></svg>
+          上传版本
+        </button>
+      </div>
+    </header>
+
+    <section class="flow">
+      <div class="flow-steps">
+        <span class="step s-up">上传中</span>
+        <span class="arrow">→</span>
+        <span class="step s-check">校验中</span>
+        <span class="arrow">→</span>
+        <span class="step s-wait">待上架</span>
+        <span class="arrow">→</span>
+        <span class="step s-on">已上架</span>
+      </div>
+      <div class="flow-rule">
+        选择安装包时会先读取压缩包大小和入口，并计算 sha256。「校验中」只核对对象大小，并读取压缩包末尾的目录确认入口，不下载整个安装包；校验中可终止或删除。多个已上架版本会同时提供给客户端，新上架版本必须高于当前已上架的最高版本。
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="filters">
+        <select class="select" id="fEngine" aria-label="引擎"></select>
+        <select class="select" id="fStatus" aria-label="状态">
+          <option value="">状态：全部</option>
+          <option>校验中</option>
+          <option>失败</option>
+          <option>待上架</option>
+          <option>已上架</option>
+          <option>已下架</option>
+        </select>
+        <span class="filter-spacer"></span>
+        <span class="filter-summary" id="summary"></span>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>引擎</th>
+            <th>版本</th>
+            <th>协议</th>
+            <th>最低客户端</th>
+            <th>平台</th>
+            <th>状态</th>
+            <th>大小</th>
+            <th>更新</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="table-foot" id="foot"></div>
+    </section>
+  </main>
+</div>
+
+<!-- Upload dialog -->
+<div class="mask" id="upMask">
+  <div class="dialog" role="dialog" aria-modal="true" aria-labelledby="upTitle">
+    <header class="dlg-head">
+      <div>
+        <div class="dlg-title" id="upTitle">上传推理引擎</div>
+        <div class="dlg-sub">提交后进入「上传中」，校验通过后进入「待上架」</div>
+      </div>
+      <button class="icon-btn" data-close aria-label="关闭">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+
+    <div class="dlg-body">
+      <div class="notice">
+        当前发布 windows/amd64 的 stable 通道。修改入口路径、解压后大小，或重新选择 zip，保存后会核对对象大小，并读取压缩包末尾的目录确认入口。只改说明、协议、最低客户端或能力时沿用上次校验结果。
+      </div>
+
+      <div class="grid">
+        <div class="f full" data-key="zip">
+          <label><span class="req">*</span>选择 zip 安装包</label>
+          <div class="dropzone">
+            <div>
+              <div class="dz-title">选择 zip 安装包</div>
+              <div class="dz-desc">仅支持 zip；选择后自动读取大小与入口，并计算 sha256</div>
+            </div>
+            <button type="button" class="link-btn" id="pickZip">选择文件</button>
+          </div>
+          <div class="file-box" id="fileBox">
+            <div class="file-row"><span class="file-name" id="fileName"></span><span class="file-meta" id="fileSize"></span></div>
+            <div class="bar"><span id="fileBar"></span></div>
+            <div class="sha-line" id="shaLine"></div>
+          </div>
+          <span class="err">请选择 zip 安装包，并等待 sha256 计算完成</span>
+        </div>
+
+        <div class="f" data-key="engine">
+          <label><span class="req">*</span>推理引擎</label>
+          <select class="field-select" id="engine">
+            <option value="">请选择</option>
+            <option value="OpenVINO ovms">OpenVINO ovms</option>
+            <option value="ONNX Runtime ort">ONNX Runtime ort</option>
+          </select>
+          <span class="err">请选择推理引擎</span>
+        </div>
+        <div class="f">
+          <label>平台</label>
+          <input class="field-input" value="windows/amd64" readonly>
+          <span class="hint">跟随 zip 包所属 stable 通道自动带入</span>
+        </div>
+
+        <div class="f" data-key="ver">
+          <label><span class="req">*</span>版本号</label>
+          <input class="field-input" id="ver" placeholder="例如 2026.5.0">
+          <span class="hint" id="verHint">语义化版本，须高于该引擎已上架最高版本</span>
+          <span class="err" id="verErr">请输入语义化版本，例如 2026.5.0</span>
+        </div>
+        <div class="f">
+          <label>协议号</label>
+          <input class="field-input" value="2" readonly>
+          <span class="hint">桌面端仅支持协议 2</span>
+        </div>
+
+        <div class="f" data-key="minClient">
+          <label><span class="req">*</span>最低客户端版本</label>
+          <select class="field-select" id="minClient">
+            <option value="">从客户端版本目录选择</option>
+            <option>0.0.1</option>
+            <option>1.0.0</option>
+            <option>1.2.0</option>
+            <option>2.0.0</option>
+          </select>
+          <span class="err">请选择最低客户端版本</span>
+        </div>
+        <div class="f" data-key="unzip">
+          <label><span class="req">*</span>解压后字节数</label>
+          <input class="field-input" id="unzip" type="number" placeholder="选包后自动解析">
+          <span class="err">请输入解压后字节数</span>
+        </div>
+
+        <div class="f full" data-key="entry">
+          <label><span class="req">*</span>入口路径</label>
+          <input class="field-input" id="entry" placeholder="压缩包内可执行文件相对路径">
+          <span class="hint">切换引擎会自动填充默认入口，可手动修改</span>
+          <span class="err">请输入入口路径</span>
+        </div>
+
+        <div class="f full" data-key="caps">
+          <label><span class="req">*</span>能力</label>
+          <div class="chips" id="caps">
+            <button type="button" class="chip on" data-val="流式">流式</button>
+            <button type="button" class="chip" data-val="工具调用">工具调用</button>
+            <button type="button" class="chip" data-val="视觉">视觉</button>
+            <button type="button" class="chip" data-val="音频输入">音频输入</button>
+            <button type="button" class="chip" data-val="音频输出">音频输出</button>
+            <button type="button" class="chip" data-val="推理强度">推理强度</button>
+          </div>
+          <span class="err">请至少选择一项能力</span>
+        </div>
+
+        <div class="f full">
+          <label>说明</label>
+          <textarea class="field-textarea" placeholder="备注描述（选填）；上架后唯一允许编辑的字段"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <footer class="dlg-foot">
+      <span class="err-sum" id="errSum"></span>
+      <div class="foot-actions">
+        <button class="btn btn-ghost" data-close>取消</button>
+        <button class="btn btn-primary" id="submitUp">上传并校验</button>
+      </div>
+    </footer>
+  </div>
+</div>
+
+<!-- Confirm -->
+<div class="mask" id="cfMask">
+  <div class="dialog confirm" role="dialog" aria-modal="true">
+    <div class="dlg-title" id="cfTitle">确认删除</div>
+    <p id="cfText"></p>
+    <div class="dlg-foot">
+      <div class="foot-actions">
+        <button class="btn btn-ghost" id="cfCancel">取消</button>
+        <button class="btn btn-danger" id="cfOk">确认删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const $$ = (s) => [...document.querySelectorAll(s)];
+  const val = (s) => $(s).value.trim();
+  const esc = (s) => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // Status -> tag + allowed actions (per module spec)
+  const STATUS = {
+    '校验中': { cls: 'check' },
+    '失败':   { cls: 'fail' },
+    '待上架': { cls: 'wait' },
+    '已上架': { cls: 'on' },
+    '已下架': { cls: 'off' }
+  };
+  const ACTIONS = {
+    '校验中': [['编辑'], ['终止校验'], ['删除', 'danger']],
+    '失败':   [['编辑'], ['删除', 'danger']],
+    '待上架': [['编辑'], ['上架'], ['吊销'], ['删除', 'danger']],
+    '已上架': [['编辑'], ['吊销'], ['删除', 'danger']],
+    '已下架': [['编辑'], ['删除', 'danger']]
+  };
+  const ENGINE_DEFAULT_ENTRY = { 'OpenVINO ovms': 'bin/ovms.exe', 'ONNX Runtime ort': 'bin/ort.exe' };
+
+  const SAMPLE = [
+    { engine: 'OpenVINO ovms', ver: '0.2.0',    proto: '2', minClient: '0.0.1', plat: 'windows/amd64', st: '校验中', size: '113 MB', upd: '2026-11-20 09:41', reason: 'IO 超时：存储请求失败' },
+    { engine: 'OpenVINO ovms', ver: '2026.4.1', proto: '2', minClient: '1.0.0', plat: 'windows/amd64', st: '已上架', size: '113 MB', upd: '2026-11-18 10:22' },
+    { engine: 'OpenVINO ovms', ver: '2026.3.0', proto: '2', minClient: '1.0.0', plat: 'windows/amd64', st: '已下架', size: '109 MB', upd: '2026-10-30 16:05' },
+    { engine: 'ONNX Runtime ort', ver: '1.18.0', proto: '2', minClient: '1.0.0', plat: 'windows/amd64', st: '待上架', size: '46 MB',  upd: '2026-11-19 16:05' },
+    { engine: 'ONNX Runtime ort', ver: '1.17.2', proto: '2', minClient: '1.2.0', plat: 'windows/amd64', st: '失败',   size: '44 MB',  upd: '2026-11-17 21:30', reason: '校验不通过：入口文件不存在' }
+  ];
+
+  let rows = [];
+  let hasData = true;
+  let filter = { engine: '', status: '' };
+
+  // ---- Version helpers ----
+  function cmp(a, b) {
+    const x = a.split('.').map(Number), y = b.split('.').map(Number);
+    for (let i = 0; i < Math.max(x.length, y.length); i++) {
+      const d = (x[i] || 0) - (y[i] || 0);
+      if (d) return d;
+    }
+    return 0;
+  }
+  function highestPublished(engine) {
+    const list = rows.filter(r => r.engine === engine && r.st === '已上架').map(r => r.ver);
+    return list.sort(cmp).pop() || null;
+  }
+
+  // ---- Render ----
+  function currentEngines() { return [...new Set(SAMPLE.concat(rows).map(r => r.engine))]; }
+
+  function renderFilters() {
+    const engines = currentEngines();
+    const prev = $('#fEngine').value;
+    $('#fEngine').innerHTML = '<option value="">引擎：全部</option>' + engines.map(e => `<option>${esc(e)}</option>`).join('');
+    $('#fEngine').value = engines.includes(prev) ? prev : '';
+    filter.engine = $('#fEngine').value;
+  }
+
+  function filtered() {
+    return rows.filter(r =>
+      (!filter.engine || r.engine === filter.engine) &&
+      (!filter.status || r.st === filter.status)
+    );
+  }
+
+  function renderRows() {
+    const body = $('#rows'), foot = $('#foot');
+    if (!rows.length) {
+      body.innerHTML = `
+        <tr><td colspan="9">
+          <div class="empty">
+            <div class="empty-art">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 15V4M7.5 8.5L12 4l4.5 4.5"/><path d="M4 15v3.5A1.5 1.5 0 0 0 5.5 20h13a1.5 1.5 0 0 0 1.5-1.5V15"/></svg>
+            </div>
+            <div class="empty-title">还没有推理引擎版本</div>
+            <div class="empty-desc">上传引擎安装包后，系统会读取入口并计算 sha256。校验通过、上架后，模型模块才能绑定该引擎版本。</div>
+            <button class="btn btn-primary" data-open>上传版本</button>
+          </div>
+        </td></tr>`;
+      foot.textContent = '共 0 条';
+      $('#summary').textContent = '';
+      return;
+    }
+
+    const list = filtered();
+    if (!list.length) {
+      body.innerHTML = `<tr><td colspan="9"><div class="empty"><div class="empty-desc" style="margin:0">没有符合条件的版本</div></div></td></tr>`;
+    } else {
+      body.innerHTML = list.map(r => {
+        const s = STATUS[r.st];
+        const acts = ACTIONS[r.st].map(([label, tone]) =>
+          `<button class="btn-link ${tone === 'danger' ? 'danger' : ''}" data-act="${label}" data-id="${r.id}">${label}</button>`).join('');
+        return `
+          <tr>
+            <td>
+              <div class="engine-name">${esc(r.engine.split(' ')[0])}</div>
+              <div class="engine-id">${esc(r.engine)}</div>
+            </td>
+            <td class="num">${esc(r.ver)}</td>
+            <td class="num muted">${esc(r.proto)}</td>
+            <td class="num muted">${esc(r.minClient)}</td>
+            <td class="muted">${esc(r.plat)}</td>
+            <td>
+              <span class="tag ${s.cls}">${r.st}</span>
+              ${r.reason ? `<div class="reason">${esc(r.reason)}</div>` : ''}
+            </td>
+            <td class="num muted">${esc(r.size)}</td>
+            <td class="num muted">${esc(r.upd)}</td>
+            <td><div class="ops">${acts}</div></td>
+          </tr>`;
+      }).join('');
+    }
+    foot.innerHTML = `<span>共 ${list.length} 条</span><span>按引擎与版本分组展示</span>`;
+    $('#summary').textContent = (filter.engine || filter.status) ? '已应用筛选' : '';
+  }
+
+  function renderAll() { renderFilters(); renderRows(); }
+
+  function setData(on) {
+    hasData = on;
+    rows = on ? SAMPLE.map((r, i) => ({ ...r, id: i + 1 })) : [];
+    $('#sw-empty').classList.toggle('on', !on);
+    $('#sw-data').classList.toggle('on', on);
+    renderAll();
+  }
+  setData(true);
+  $('#sw-empty').onclick = () => setData(false);
+  $('#sw-data').onclick = () => setData(true);
+
+  $('#fEngine').onchange = e => { filter.engine = e.target.value; renderRows(); };
+  $('#fStatus').onchange = e => { filter.status = e.target.value; renderRows(); };
+
+  // ---- Row actions ----
+  let nextId = 100;
+  let pendingDelete = null;
+  $('#rows').addEventListener('click', e => {
+    if (e.target.closest('[data-open]')) return openUpload();
+    const b = e.target.closest('[data-act]');
+    if (!b) return;
+    const r = rows.find(x => x.id === Number(b.dataset.id));
+    const act = b.dataset.act;
+    if (!r) return;
+
+    if (act === '删除') {
+      pendingDelete = r;
+      $('#cfTitle').textContent = '确认删除';
+      $('#cfText').textContent = r.st === '已上架'
+        ? `「${r.engine} ${r.ver}」已上架，删除会影响依赖该引擎版本的线上模型，请确认。`
+        : `将删除「${r.engine} ${r.ver}」，此操作不可恢复。`;
+      $('#cfMask').classList.add('open');
+      return;
+    }
+    if (act === '终止校验') { r.st = '失败'; r.reason = '校验已由运营人员终止'; }
+    if (act === '上架') {
+      const top = highestPublished(r.engine);
+      if (top && cmp(r.ver, top) <= 0) return toast(`上架失败：版本号须高于当前已上架最高版本 ${top}`);
+      r.st = '已上架';
+    }
+    if (act === '吊销') r.st = '已下架';
+    if (act === '编辑') return toast('编辑：已上架版本仅可修改说明（原型未展开）');
+    r.upd = nowStr();
+    renderRows();
+  });
+
+  $('#cfCancel').onclick = () => $('#cfMask').classList.remove('open');
+  $('#cfOk').onclick = () => {
+    rows = rows.filter(r => r !== pendingDelete);
+    pendingDelete = null;
+    $('#cfMask').classList.remove('open');
+    renderAll();
+    toast('已删除');
+  };
+
+  // ---- Upload dialog ----
+  const state = { zipReady: false, attempted: false, caps: new Set(['流式']), timer: null };
+
+  function openUpload() { $('#upMask').classList.add('open'); }
+  function closeUpload() { $('#upMask').classList.remove('open'); }
+  $('#openUpload').onclick = openUpload;
+  $$('[data-close]').forEach(b => b.onclick = closeUpload);
+  $('#upMask').addEventListener('click', e => { if (e.target.id === 'upMask') closeUpload(); });
+  $('#cfMask').addEventListener('click', e => { if (e.target.id === 'cfMask') $('#cfMask').classList.remove('open'); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeUpload(); $('#cfMask').classList.remove('open'); }
+  });
+
+  $('#pickZip').onclick = () => {
+    clearInterval(state.timer);
+    state.zipReady = false;
+    $('#fileBox').classList.add('show');
+    $('#fileName').textContent = 'ovms-windows-amd64-2026.5.0.zip';
+    $('#fileSize').textContent = '113 MB';
+    $('#fileBar').style.width = '0%';
+    $('#shaLine').textContent = '读取压缩包并计算 sha256… 0%';
+    let p = 0;
+    state.timer = setInterval(() => {
+      p = Math.min(100, p + 5);
+      $('#fileBar').style.width = p + '%';
+      $('#shaLine').textContent = `读取压缩包并计算 sha256… ${p}%`;
+      if (p >= 100) {
+        clearInterval(state.timer);
+        state.zipReady = true;
+        $('#shaLine').innerHTML = 'sha256 <code>9c2e41a7…3b0f18d5</code> · 入口与大小已解析';
+        if (!val('#entry')) $('#entry').value = ENGINE_DEFAULT_ENTRY[$('#engine').value] || 'bin/ovms.exe';
+        if (!val('#unzip')) $('#unzip').value = '325789724';
+        validate();
+      }
+    }, 80);
+    validate();
+  };
+
+  $('#engine').onchange = () => {
+    const eng = $('#engine').value;
+    if (eng) $('#entry').value = ENGINE_DEFAULT_ENTRY[eng];
+    const top = eng ? highestPublished(eng) : null;
+    $('#verHint').textContent = top
+      ? `语义化版本，须高于该引擎已上架最高版本 ${top}`
+      : '语义化版本；该引擎暂无已上架版本';
+    validate();
+  };
+
+  $('#caps').addEventListener('click', e => {
+    const c = e.target.closest('.chip');
+    if (!c) return;
+    const v = c.dataset.val;
+    const on = !c.classList.contains('on');
+    c.classList.toggle('on', on);
+    on ? state.caps.add(v) : state.caps.delete(v);
+    validate();
+  });
+
+  document.querySelector('.dlg-body').addEventListener('input', validate);
+  document.querySelector('.dlg-body').addEventListener('change', validate);
+
+  function setErr(key, bad) {
+    const w = document.querySelector(`[data-key="${key}"]`);
+    if (w) w.classList.toggle('invalid', bad);
+  }
+
+  function validate() {
+    const verOk = /^\d+(\.\d+){1,2}$/.test(val('#ver'));
+    const eng = val('#engine');
+    const top = eng ? highestPublished(eng) : null;
+    const verTooLow = verOk && top && cmp(val('#ver'), top) <= 0;
+    const rules = {
+      zip: !state.zipReady,
+      engine: !eng,
+      ver: !verOk || verTooLow,
+      minClient: !val('#minClient'),
+      unzip: !(Number($('#unzip').value) > 0),
+      entry: !val('#entry'),
+      caps: state.caps.size === 0
+    };
+    $('#verErr').textContent = verTooLow
+      ? `版本号须高于该引擎已上架最高版本 ${top}`
+      : '请输入语义化版本，例如 2026.5.0';
+
+    let n = 0;
+    for (const k in rules) {
+      if (rules[k]) n++;
+      if (state.attempted) setErr(k, rules[k]);
+    }
+    const sum = $('#errSum');
+    sum.textContent = `还有 ${n} 项必填未完成`;
+    sum.classList.toggle('show', state.attempted && n > 0);
+    return n;
+  }
+
+  $('#submitUp').onclick = () => {
+    state.attempted = true;
+    if (validate() > 0) return;
+    rows.unshift({
+      id: nextId++, engine: val('#engine'), ver: val('#ver'), proto: '2',
+      minClient: val('#minClient'), plat: 'windows/amd64', st: '校验中',
+      size: $('#fileSize').textContent, upd: nowStr()
+    });
+    closeUpload();
+    renderAll();
+    toast('已提交，状态：上传中 → 校验中');
+  };
+
+  function nowStr() {
+    const d = new Date(), p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  renderAll();
+  validate();
+</script>
+<script>
+  // Sidebar navigation between the two linked pages
+  const NAV_PAGES = { '模型': '运营平台-模型列表设计.html', '推理引擎': '运营平台-推理引擎设计.html', '元数据': '运营平台-元数据设计.html', '使用日志': '运营平台-使用日志设计.html' };
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+    const target = NAV_PAGES[btn.textContent.trim()];
+    if (!target) return;
+    btn.addEventListener('click', () => {
+      if (!location.pathname.endsWith(target)) location.href = target;
+    });
+  });
+</script>
+</body>
+</html>
