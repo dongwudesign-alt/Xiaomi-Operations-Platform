@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小米算力平台-OPS · 角色与权限</title>
+<style>
+  :root {
+    --color-primary: #2F7BFF;
+    --color-primary-hover: #1F6AEE;
+    --color-primary-soft: #E4EEFD;
+    --color-bg-app: #FAFAFB;
+    --color-bg-sidebar: #F5F6F8;
+    --color-surface: #FFFFFF;
+    --color-border: #E8EAEE;
+    --color-border-row: #EEF0F3;
+    --color-text-primary: #1F2329;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9AA0A9;
+    --color-danger: #E5484D;
+    --color-danger-soft: #FDECEC;
+    --color-success: #16A34A;
+    --color-success-soft: #E6F7EE;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.04);
+    --shadow-dialog: 0 12px 48px rgba(16,24,40,0.16);
+    --font-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: var(--font-sans); font-size: 14px; line-height: 22px; color: var(--color-text-primary); background: var(--color-bg-app); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; }
+  button:disabled { cursor: not-allowed; opacity: 0.45; }
+
+  /* ---------- Shell ---------- */
+  .app { display: flex; height: 100vh; min-height: 620px; }
+  .sidebar { width: 200px; flex: none; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border); padding: 20px 12px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .brand-mark { width: 28px; height: 28px; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+  .brand-name { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: var(--radius-md); color: var(--color-text-primary); text-align: left; width: 100%; transition: background-color 150ms ease; }
+  .nav-item:hover { background: #ECEEF2; }
+  .nav-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-group-label { font-size: 12px; color: var(--color-text-tertiary); padding: 16px 12px 6px; }
+  .sidebar-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--color-border); }
+  .account-name { font-size: 13px; font-weight: 500; }
+  .account-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .logout { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); height: 28px; padding: 0 12px; }
+
+  .main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 48px 48px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+  .crumb { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
+  .page-title { font-size: 20px; font-weight: 600; line-height: 28px; }
+
+  /* ---------- Buttons ---------- */
+  .btn { height: 36px; padding: 0 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background-color 150ms ease; flex: none; }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-primary:hover { background: var(--color-primary-hover); }
+  .btn-ghost { background: #F2F3F5; color: var(--color-text-primary); }
+  .btn-ghost:hover { background: #E7E9ED; }
+  .btn-danger { background: var(--color-danger); color: #fff; }
+  .btn-danger:hover { background: #D03A3F; }
+
+  /* ---------- Layout ---------- */
+  .split { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+  .panel { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+
+  /* Role list */
+  .role-list { padding: 8px; display: flex; flex-direction: column; gap: 4px; }
+  .role-item { text-align: left; padding: 12px; border-radius: var(--radius-lg); border: 1px solid transparent; display: flex; flex-direction: column; gap: 4px; }
+  .role-item:hover { background: #F5F6F8; }
+  .role-item.on { background: var(--color-primary-soft); border-color: transparent; }
+  .role-item-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .role-name { font-size: 14px; font-weight: 600; }
+  .role-desc { font-size: 12px; color: var(--color-text-secondary); line-height: 18px; }
+  .role-code { font-size: 12px; color: var(--color-text-tertiary); font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .builtin { height: 20px; padding: 0 6px; border-radius: 4px; font-size: 12px; background: #F0F1F3; color: var(--color-text-secondary); display: inline-flex; align-items: center; flex: none; }
+  .builtin.custom { background: #EDE9FE; color: #6D28D9; }
+
+  /* Role detail */
+  .detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; padding: 20px 24px; border-bottom: 1px solid var(--color-border-row); }
+  .detail-title { display: flex; align-items: center; gap: 10px; font-size: 18px; font-weight: 600; line-height: 26px; }
+  .detail-meta { font-size: 12px; color: var(--color-text-tertiary); margin-top: 4px; line-height: 18px; }
+  .detail-actions { display: flex; gap: 8px; align-items: center; flex: none; }
+  .notice { margin: 16px 24px 0; padding: 12px 14px; border-radius: var(--radius-md); background: #F2F7FF; font-size: 12px; color: var(--color-text-secondary); line-height: 20px; }
+  .notice.lock { background: #FEF3C7; color: #92400E; }
+  .notice strong { color: var(--color-text-primary); font-weight: 500; }
+  .count-line { display: flex; justify-content: space-between; align-items: center; padding: 16px 24px 8px; font-size: 13px; color: var(--color-text-secondary); }
+  .count-line b { color: var(--color-text-primary); font-weight: 600; font-variant-numeric: tabular-nums; }
+  .dirty { font-size: 12px; color: #B45309; display: none; }
+  .dirty.show { display: inline; }
+
+  .domain { padding: 0 24px 4px; }
+  .domain + .domain { border-top: 1px solid var(--color-border-row); margin-top: 12px; padding-top: 12px; }
+  .domain-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+  .domain-title span { font-size: 12px; color: var(--color-text-tertiary); font-weight: 400; }
+  .perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; padding-bottom: 8px; }
+  .perm { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer; }
+  .perm:hover { background: #F7F8FA; }
+  .perm.disabled { cursor: default; }
+  .perm.disabled:hover { background: none; }
+  .perm input { width: 16px; height: 16px; accent-color: var(--color-primary); margin: 0; flex: none; cursor: pointer; }
+  .perm input:disabled { cursor: not-allowed; }
+  .perm-text { min-width: 0; flex: 1; }
+  .perm-name { font-size: 13px; }
+  .perm-code { font-size: 11px; color: var(--color-text-tertiary); font-family: ui-monospace, Menlo, Consolas, monospace; }
+  .type { height: 18px; padding: 0 6px; border-radius: 4px; font-size: 11px; display: inline-flex; align-items: center; flex: none; }
+  .type.read { background: #F0F1F3; color: var(--color-text-secondary); }
+  .type.write { background: #EAF2FF; color: #2F7BFF; }
+  .type.change { background: #EDE9FE; color: #6D28D9; }
+  .type.high { background: var(--color-danger-soft); color: var(--color-danger); }
+
+  .detail-foot { padding: 16px 24px; border-top: 1px solid var(--color-border-row); display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; color: var(--color-text-tertiary); }
+
+  /* ---------- Modal ---------- */
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: grid; place-items: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 200ms ease; z-index: 50; }
+  .mask.open { opacity: 1; pointer-events: auto; }
+  .dialog { width: 520px; max-width: 100%; max-height: min(600px, 80vh); background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-dialog); display: flex; flex-direction: column; overflow: hidden; transform: translateY(8px); transition: transform 200ms ease; }
+  .mask.open .dialog { transform: translateY(0); }
+  .dlg-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--color-border-row); flex: none; }
+  .dlg-title { font-size: 18px; font-weight: 600; line-height: 26px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: var(--radius-md); display: grid; place-items: center; color: var(--color-text-secondary); }
+  .icon-btn:hover { background: #ECEEF2; }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .dlg-body { flex: 1; overflow-y: auto; min-height: 0; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .dlg-foot { flex: none; padding: 14px 24px; border-top: 1px solid var(--color-border-row); display: flex; justify-content: flex-end; gap: 8px; }
+  .f { display: flex; flex-direction: column; gap: 6px; }
+  .f > label { font-size: 13px; font-weight: 500; }
+  .req { color: var(--color-danger); margin-right: 2px; }
+  .hint { font-size: 12px; color: var(--color-text-tertiary); line-height: 18px; }
+  .err { display: none; font-size: 12px; color: var(--color-danger); line-height: 18px; }
+  .f.invalid .err { display: block; }
+  .f.invalid .field { border-color: var(--color-danger); }
+  .field { height: 36px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: #fff; padding: 0 12px; font-size: 14px; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; }
+  textarea.field { height: 72px; padding: 8px 12px; resize: vertical; line-height: 20px; }
+  .field::placeholder { color: var(--color-text-tertiary); }
+  .field:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(47,123,255,0.12); }
+
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: var(--color-text-primary); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: var(--radius-md); opacity: 0; transition: all 200ms ease; pointer-events: none; z-index: 60; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">MI</div>
+      <div>
+        <div class="brand-name">小米算力平台-OPS</div>
+        <div class="brand-sub">运营控制台</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+        模型
+      </button>
+    </nav>
+
+    <div class="nav-group-label">业务</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+        推理引擎
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h12M4 10h12M4 15h8"/></svg>
+        元数据
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h6l3 3v11H6z"/><path d="M8 10h5M8 13h4"/></svg>
+        使用日志
+      </button>
+    </nav>
+
+    <div class="nav-group-label">管控</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 10.5l3 3 7-7"/></svg>
+        审批
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg>
+        用户
+      </button>
+      <button class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3l6 2.5v4.5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5.5z"/></svg>
+        角色权限
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="account-name">系统管理员</div>
+      <div class="account-meta">admin · 本地</div>
+      <button class="logout nav-item">退出</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <div class="crumb">管控 / 角色权限</div>
+        <h1 class="page-title">角色与权限</h1>
+      </div>
+      <button class="btn btn-primary" id="btnNew">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v10M2 7h10"/></svg>
+        新建角色
+      </button>
+    </header>
+
+    <div class="split">
+      <section class="panel">
+        <div class="role-list" id="roleList"></div>
+      </section>
+
+      <section class="panel" id="detail"></section>
+    </div>
+  </main>
+</div>
+
+<!-- New role modal -->
+<div class="mask" id="newMask">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <header class="dlg-head">
+      <div class="dlg-title">新建角色</div>
+      <button class="icon-btn" data-close aria-label="关闭">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+    <div class="dlg-body">
+      <div class="f" data-key="code">
+        <label><span class="req">*</span>编码</label>
+        <input class="field" id="nCode" placeholder="例如 model_auditor" autocomplete="off">
+        <span class="hint">唯一标识，建议 域_职责 形式，仅小写字母、数字、下划线</span>
+        <span class="err"></span>
+      </div>
+      <div class="f" data-key="name">
+        <label><span class="req">*</span>名称</label>
+        <input class="field" id="nName" placeholder="展示名称" autocomplete="off">
+        <span class="err"></span>
+      </div>
+      <div class="f" data-key="desc">
+        <label>说明</label>
+        <textarea class="field" id="nDesc" placeholder="职责描述（选填）"></textarea>
+      </div>
+      <div class="hint">新建后角色为空权限状态，创建完成后在右侧勾选权限并保存。</div>
+    </div>
+    <footer class="dlg-foot">
+      <button class="btn btn-ghost" data-close>取消</button>
+      <button class="btn btn-primary" id="nSave">创建</button>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  // Permission points grouped by business domain (32 in total, per spec)
+  const DOMAINS = [
+    { name: '模型', perms: [
+      ['model.read', '查看模型', 'read'], ['model.upload', '上传模型', 'write'], ['model.edit', '编辑模型', 'write'],
+      ['model.publish', '上架模型', 'change'], ['model.unpublish', '下架模型', 'change'], ['model.delete', '删除模型', 'high']] },
+    { name: '推理引擎', perms: [
+      ['engine.read', '查看推理引擎', 'read'], ['engine.upload', '上传推理引擎', 'write'], ['engine.edit', '编辑推理引擎', 'write'],
+      ['engine.publish', '上架推理引擎', 'change'], ['engine.unpublish', '下架推理引擎', 'change'],
+      ['engine.revoke', '吊销推理引擎', 'high'], ['engine.delete', '删除推理引擎', 'high']] },
+    { name: '元数据', perms: [
+      ['meta.task.read', '查看模型类型', 'read'], ['meta.task.write', '管理模型类型', 'write'],
+      ['meta.tag.read', '查看标签', 'read'], ['meta.tag.write', '管理标签', 'write'],
+      ['meta.engine.read', '查看推理平台', 'read'], ['meta.engine.write', '管理推理平台', 'write'],
+      ['meta.reasoning.read', '查看推理强度', 'read'], ['meta.reasoning.write', '管理推理强度', 'write'],
+      ['meta.client.read', '查看客户端版本', 'read'], ['meta.client.write', '管理客户端版本', 'write']] },
+    { name: '机型', perms: [
+      ['device.read', '查看机型', 'read'], ['device.write', '管理机型', 'write']] },
+    { name: '审批', perms: [
+      ['approval.read', '查看审批', 'read'], ['approval.decide', '处理审批', 'high']] },
+    { name: '系统', perms: [
+      ['system.user.read', '查看用户', 'read'], ['system.user.write', '管理用户', 'write'],
+      ['system.role.read', '查看角色', 'read'], ['system.role.write', '管理角色', 'write']] },
+    { name: '审计', perms: [
+      ['audit.read', '查看审计', 'read']] }
+  ];
+  const TYPE_LABEL = { read: '只读', write: '写', change: '变更', high: '高危' };
+  const ALL_CODES = DOMAINS.flatMap(d => d.perms.map(p => p[0]));
+  const modelOperatorPerms = ALL_CODES.filter(c =>
+    c.startsWith('model.') || c.startsWith('engine.') || c === 'device.read' || c === 'approval.read' || c === 'audit.read' ||
+    (c.startsWith('meta.') && c.endsWith('.read')));
+
+  // Built-in roles follow the spec; custom role is a sample created under the rules
+  let ROLES = [
+    { id: 'super_admin', code: 'super_admin', name: '超级管理员', desc: '拥有全部权限点', builtin: true, locked: true, perms: [...ALL_CODES] },
+    { id: 'model_operator', code: 'model_operator', name: '模型运营', desc: '模型管理与审计查看', builtin: true, perms: modelOperatorPerms },
+    { id: 'auditor', code: 'auditor', name: '审计员', desc: '只查看操作日志', builtin: true, perms: ['audit.read'] },
+    { id: 'guest', code: 'guest', name: '游客', desc: '没有任何业务权限', builtin: true, perms: [], note: '未分配人员的默认角色，普通员工直到管理员另行分配前使用此角色' },
+    { id: 'model_auditor', code: 'model_auditor', name: '模型审计', desc: '查看模型与引擎，并可查看审计', builtin: false, perms: ['model.read', 'engine.read', 'audit.read'] }
+  ];
+
+  let selectedId = 'model_operator';
+  let draft = new Set();   // working copy of permissions for the selected role
+  let dirty = false;
+
+  const current = () => ROLES.find(r => r.id === selectedId);
+
+  function selectRole(id) {
+    if (dirty && id !== selectedId) {
+      toast('当前角色有未保存的修改，请先保存或重置');
+      return;
+    }
+    selectedId = id;
+    draft = new Set(current().perms);
+    dirty = false;
+    renderAll();
+  }
+
+  // ---------- Render ----------
+  function renderList() {
+    $('#roleList').innerHTML = ROLES.map(r => `
+      <button class="role-item ${r.id === selectedId ? 'on' : ''}" data-role="${r.id}">
+        <div class="role-item-top">
+          <span class="role-name">${esc(r.name)}</span>
+          <span class="builtin ${r.builtin ? '' : 'custom'}">${r.builtin ? '内置' : '自建'}</span>
+        </div>
+        <div class="role-desc">${esc(r.desc)}</div>
+        <div class="role-code">${esc(r.code)} · ${r.perms.length} 项权限</div>
+      </button>`).join('');
+  }
+
+  function renderDetail() {
+    const r = current();
+    const locked = !!r.locked;
+    const grant = (code) => draft.has(code);
+
+    const domainsHTML = DOMAINS.map(d => {
+      const n = d.perms.filter(p => grant(p[0])).length;
+      return `
+        <div class="domain">
+          <div class="domain-title">${d.name}<span>${n} / ${d.perms.length}</span></div>
+          <div class="perm-grid">
+            ${d.perms.map(([code, name, type]) => `
+              <label class="perm ${locked ? 'disabled' : ''}">
+                <input type="checkbox" data-perm="${code}" ${grant(code) ? 'checked' : ''} ${locked ? 'disabled' : ''}>
+                <span class="perm-text">
+                  <span class="perm-name">${name}</span>
+                  <div class="perm-code">${code}</div>
+                </span>
+                <span class="type ${type}">${TYPE_LABEL[type]}</span>
+              </label>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+
+    $('#detail').innerHTML = `
+      <div class="detail-head">
+        <div>
+          <div class="detail-title">${esc(r.name)} <span class="builtin ${r.builtin ? '' : 'custom'}">${r.builtin ? '内置' : '自建'}</span></div>
+          <div class="detail-meta">${esc(r.code)} · ${esc(r.desc)}</div>
+        </div>
+        ${locked ? '' : `<div class="detail-actions">
+          <button class="btn btn-ghost" id="btnReset" ${dirty ? '' : 'disabled'}>重置</button>
+          <button class="btn btn-primary" id="btnSave" ${dirty ? '' : 'disabled'}>保存权限</button>
+        </div>`}
+      </div>
+
+      ${locked ? '<div class="notice lock"><strong>超级管理员拥有全部权限点，不能在这里裁剪。</strong></div>' : ''}
+      ${r.note ? `<div class="notice"><strong>说明：</strong>${esc(r.note)}</div>` : ''}
+
+      <div class="count-line">
+        <span>已授权 <b>${draft.size}</b> / ${ALL_CODES.length} 项权限</span>
+        <span class="dirty ${dirty ? 'show' : ''}">有未保存的修改</span>
+      </div>
+
+      ${domainsHTML}
+
+      <div class="detail-foot">
+        <span>权限点彼此独立，不自动继承；保存按角色整体提交</span>
+        <span>${locked ? '' : '保存后对绑定该角色的用户生效'}</span>
+      </div>`;
+  }
+
+  function renderAll() { renderList(); renderDetail(); }
+
+  // ---------- Interactions ----------
+  $('#roleList').addEventListener('click', e => {
+    const b = e.target.closest('[data-role]');
+    if (b) selectRole(b.dataset.role);
+  });
+
+  $('#detail').addEventListener('change', e => {
+    const cb = e.target.closest('[data-perm]');
+    if (!cb || current().locked) return;
+    cb.checked ? draft.add(cb.dataset.perm) : draft.delete(cb.dataset.perm);
+    dirty = !sameSet(draft, current().perms);
+    renderDetail();
+  });
+
+  $('#detail').addEventListener('click', e => {
+    if (e.target.closest('#btnReset')) {
+      draft = new Set(current().perms);
+      dirty = false;
+      renderDetail();
+      toast('已恢复为已保存的权限');
+    }
+    if (e.target.closest('#btnSave')) {
+      current().perms = [...draft];
+      dirty = false;
+      renderAll();
+      toast(`已保存「${current().name}」的权限`);
+    }
+  });
+
+  function sameSet(a, arr) {
+    if (a.size !== arr.length) return false;
+    return arr.every(x => a.has(x));
+  }
+
+  // ---------- New role ----------
+  const CODE_RE = /^[a-z0-9_]+$/;
+  function setErr(key, msg) {
+    const el = document.querySelector(`#newMask [data-key="${key}"]`);
+    el.classList.toggle('invalid', !!msg);
+    el.querySelector('.err').textContent = msg || '';
+  }
+  function openNew() {
+    ['nCode', 'nName', 'nDesc'].forEach(id => $('#' + id).value = '');
+    ['code', 'name'].forEach(k => setErr(k, ''));
+    $('#newMask').classList.add('open');
+  }
+  function closeNew() { $('#newMask').classList.remove('open'); }
+
+  $('#btnNew').onclick = openNew;
+  $('#nSave').onclick = () => {
+    const code = $('#nCode').value.trim(), name = $('#nName').value.trim(), desc = $('#nDesc').value.trim();
+    let bad = 0;
+    const codeMsg = !code ? '请输入编码' : !CODE_RE.test(code) ? '仅支持小写字母、数字、下划线' : ROLES.some(r => r.code === code) ? '编码已存在，请更换' : '';
+    setErr('code', codeMsg); if (codeMsg) bad++;
+    setErr('name', !name ? '请输入名称' : ''); if (!name) bad++;
+    if (bad) return;
+    const r = { id: code, code, name, desc: desc || '自建角色', builtin: false, perms: [] };
+    ROLES.push(r);
+    closeNew();
+    selectedId = r.id;
+    draft = new Set();
+    dirty = false;
+    renderAll();
+    toast('已创建角色，请勾选权限后保存');
+  };
+  document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeNew);
+  $('#newMask').addEventListener('click', e => { if (e.target.id === 'newMask') closeNew(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeNew(); });
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ---------- Sidebar navigation (shared across all pages) ----------
+  const NAV_PAGES = {
+    '模型': '运营平台-模型列表设计.html',
+    '推理引擎': '运营平台-推理引擎设计.html',
+    '元数据': '运营平台-元数据设计.html',
+    '使用日志': '运营平台-使用日志设计.html',
+    '审批': '运营平台-审批设计.html',
+    '用户': '运营平台-用户设计.html',
+    '角色权限': '运营平台-角色权限设计.html'
+  };
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+    const target = NAV_PAGES[btn.textContent.trim()];
+    if (!target) return;
+    btn.addEventListener('click', () => {
+      if (!location.pathname.endsWith(target)) location.href = target;
+    });
+  });
+
+  draft = new Set(current().perms);
+  renderAll();
+</script>
+</body>
+</html>

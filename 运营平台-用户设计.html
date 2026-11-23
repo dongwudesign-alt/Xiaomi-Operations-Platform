@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小米算力平台-OPS · 用户</title>
+<style>
+  :root {
+    --color-primary: #2F7BFF;
+    --color-primary-hover: #1F6AEE;
+    --color-primary-soft: #E4EEFD;
+    --color-bg-app: #FAFAFB;
+    --color-bg-sidebar: #F5F6F8;
+    --color-surface: #FFFFFF;
+    --color-border: #E8EAEE;
+    --color-border-row: #EEF0F3;
+    --color-text-primary: #1F2329;
+    --color-text-secondary: #6B7280;
+    --color-text-tertiary: #9AA0A9;
+    --color-danger: #E5484D;
+    --color-danger-soft: #FDECEC;
+    --color-success: #16A34A;
+    --color-success-soft: #E6F7EE;
+    --radius-sm: 6px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-pill: 999px;
+    --shadow-card: 0 1px 2px rgba(16,24,40,0.04), 0 4px 16px rgba(16,24,40,0.04);
+    --shadow-dialog: 0 12px 48px rgba(16,24,40,0.16);
+    --font-sans: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font-family: var(--font-sans); font-size: 14px; line-height: 22px; color: var(--color-text-primary); background: var(--color-bg-app); -webkit-font-smoothing: antialiased; }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; background: none; border: 0; }
+  button:disabled { cursor: not-allowed; opacity: 0.4; }
+
+  /* ---------- Shell ---------- */
+  .app { display: flex; height: 100vh; min-height: 620px; }
+  .sidebar { width: 200px; flex: none; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border); padding: 20px 12px; display: flex; flex-direction: column; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
+  .brand-mark { width: 28px; height: 28px; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
+  .brand-name { font-size: 14px; font-weight: 600; }
+  .brand-sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .nav { display: flex; flex-direction: column; gap: 4px; }
+  .nav-item { height: 32px; display: flex; align-items: center; gap: 10px; padding: 0 12px; border-radius: var(--radius-md); color: var(--color-text-primary); text-align: left; width: 100%; transition: background-color 150ms ease; }
+  .nav-item:hover { background: #ECEEF2; }
+  .nav-item.active { background: var(--color-primary-soft); color: var(--color-primary); font-weight: 500; }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-group-label { font-size: 12px; color: var(--color-text-tertiary); padding: 16px 12px 6px; }
+  .sidebar-foot { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--color-border); }
+  .account-name { font-size: 13px; font-weight: 500; }
+  .account-meta { font-size: 12px; color: var(--color-text-tertiary); }
+  .logout { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); height: 28px; padding: 0 12px; }
+
+  .main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 48px 48px; }
+  .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
+  .crumb { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
+  .page-title { font-size: 20px; font-weight: 600; line-height: 28px; }
+
+  /* ---------- Buttons ---------- */
+  .btn { height: 36px; padding: 0 16px; border-radius: var(--radius-md); font-size: 14px; font-weight: 500; display: inline-flex; align-items: center; gap: 6px; transition: background-color 150ms ease; flex: none; }
+  .btn-primary { background: var(--color-primary); color: #fff; }
+  .btn-primary:hover { background: var(--color-primary-hover); }
+  .btn-ghost { background: #F2F3F5; color: var(--color-text-primary); }
+  .btn-ghost:hover { background: #E7E9ED; }
+  .btn-danger { background: var(--color-danger); color: #fff; }
+  .btn-danger:hover { background: #D03A3F; }
+  .btn-link { height: 30px; padding: 0 8px; color: var(--color-primary); font-size: 13px; border-radius: var(--radius-md); }
+  .btn-link:hover { background: var(--color-primary-soft); }
+  .btn-link.danger { color: var(--color-danger); }
+  .btn-link.danger:hover { background: var(--color-danger-soft); }
+  .btn-link:disabled { color: var(--color-text-tertiary); background: none; }
+
+  /* ---------- Table ---------- */
+  .panel { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 12px; font-weight: 400; color: var(--color-text-tertiary); height: 40px; padding: 0 16px; background: #FAFBFC; border-bottom: 1px solid var(--color-border-row); white-space: nowrap; }
+  td { padding: 10px 16px; height: 56px; border-bottom: 1px solid var(--color-border-row); vertical-align: middle; white-space: nowrap; }
+  tbody tr:last-child td { border-bottom: 0; }
+  tbody tr:hover td { background: #FAFBFC; }
+  .strong { font-weight: 500; }
+  .sub { font-size: 12px; color: var(--color-text-tertiary); }
+  .muted { color: var(--color-text-secondary); }
+  .num { font-variant-numeric: tabular-nums; }
+  .ops { display: flex; gap: 2px; }
+  .tag { height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; gap: 6px; }
+  .tag::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  .tag.on { background: var(--color-success-soft); color: var(--color-success); }
+  .tag.off { background: #F0F1F3; color: var(--color-text-secondary); }
+  .src { height: 20px; padding: 0 8px; border-radius: 4px; font-size: 12px; display: inline-flex; align-items: center; }
+  .src.oa { background: #EAF2FF; color: #2F7BFF; }
+  .src.local { background: #F2F3F5; color: var(--color-text-secondary); }
+  .role { height: 22px; padding: 0 8px; border-radius: 4px; font-size: 12px; background: #EDE9FE; color: #6D28D9; display: inline-flex; align-items: center; margin-right: 4px; }
+  .table-foot { display: flex; justify-content: space-between; padding: 12px 20px; border-top: 1px solid var(--color-border-row); font-size: 12px; color: var(--color-text-tertiary); }
+  .toolbar { display: flex; justify-content: space-between; align-items: center; padding: 14px 20px; border-bottom: 1px solid var(--color-border-row); }
+  .toolbar-hint { font-size: 12px; color: var(--color-text-tertiary); }
+  .empty-note { padding: 40px 24px; text-align: center; font-size: 13px; color: var(--color-text-tertiary); }
+
+  /* ---------- Modal ---------- */
+  .mask { position: fixed; inset: 0; background: rgba(0,0,0,0.35); display: grid; place-items: center; padding: 24px; opacity: 0; pointer-events: none; transition: opacity 200ms ease; z-index: 50; }
+  .mask.open { opacity: 1; pointer-events: auto; }
+  .dialog { width: 520px; max-width: 100%; max-height: min(600px, 80vh); background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-dialog); display: flex; flex-direction: column; overflow: hidden; transform: translateY(8px); transition: transform 200ms ease; }
+  .mask.open .dialog { transform: translateY(0); }
+  .dlg-head { display: flex; align-items: center; justify-content: space-between; padding: 18px 24px; border-bottom: 1px solid var(--color-border-row); flex: none; }
+  .dlg-title { font-size: 18px; font-weight: 600; line-height: 26px; }
+  .icon-btn { width: 32px; height: 32px; border-radius: var(--radius-md); display: grid; place-items: center; color: var(--color-text-secondary); }
+  .icon-btn:hover { background: #ECEEF2; }
+  .icon-btn svg { width: 16px; height: 16px; }
+  .dlg-body { flex: 1; overflow-y: auto; min-height: 0; padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+  .dlg-foot { flex: none; padding: 14px 24px; border-top: 1px solid var(--color-border-row); display: flex; justify-content: flex-end; gap: 8px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 16px; }
+  .full { grid-column: 1 / -1; }
+  .f { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  .f > label { font-size: 13px; font-weight: 500; }
+  .req { color: var(--color-danger); margin-right: 2px; }
+  .hint { font-size: 12px; color: var(--color-text-tertiary); line-height: 18px; }
+  .err { display: none; font-size: 12px; color: var(--color-danger); line-height: 18px; }
+  .f.invalid .err { display: block; }
+  .f.invalid .field { border-color: var(--color-danger); }
+  .field { height: 36px; width: 100%; border-radius: var(--radius-md); border: 1px solid var(--color-border); background: #fff; padding: 0 12px; font-size: 14px; outline: none; transition: border-color 150ms ease, box-shadow 150ms ease; }
+  .field::placeholder { color: var(--color-text-tertiary); }
+  .field:focus { border-color: var(--color-primary); box-shadow: 0 0 0 3px rgba(47,123,255,0.12); }
+  .field[readonly] { background: #F5F6F8; color: var(--color-text-secondary); }
+  select.field { appearance: none; padding-right: 32px; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12' fill='none' stroke='%239AA0A9' stroke-width='1.5'%3E%3Cpath d='M3 4.5l3 3 3-3'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+  .seg { display: inline-flex; padding: 2px; border-radius: var(--radius-pill); background: #ECEEF2; height: 32px; }
+  .seg button { padding: 0 14px; border-radius: var(--radius-pill); font-size: 13px; color: var(--color-text-secondary); }
+  .seg button.on { background: #fff; color: var(--color-text-primary); font-weight: 500; box-shadow: 0 1px 2px rgba(16,24,40,0.08); }
+  .role-box { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; min-height: 36px; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: var(--radius-md); background: #fff; }
+  .role-box .role { margin: 0; }
+  .role-x { width: 16px; height: 16px; border-radius: 50%; font-size: 12px; line-height: 16px; color: #6D28D9; margin-left: 2px; }
+  .role-x:hover { background: rgba(109,40,217,0.12); }
+  .role-add { border: 0; outline: none; height: 26px; font-size: 13px; background: transparent; color: var(--color-text-secondary); min-width: 120px; }
+  .confirm { width: 400px; }
+  .confirm p { font-size: 13px; color: var(--color-text-secondary); line-height: 20px; }
+  .readonly-note { font-size: 12px; color: var(--color-text-tertiary); }
+
+  .toast { position: fixed; left: 50%; bottom: 28px; transform: translate(-50%, 20px); background: var(--color-text-primary); color: #fff; font-size: 13px; padding: 10px 16px; border-radius: var(--radius-md); opacity: 0; transition: all 200ms ease; pointer-events: none; z-index: 60; }
+  .toast.show { opacity: 1; transform: translate(-50%, 0); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-mark">MI</div>
+      <div>
+        <div class="brand-name">小米算力平台-OPS</div>
+        <div class="brand-sub">运营控制台</div>
+      </div>
+    </div>
+
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="6" height="6" rx="1.5"/><rect x="11" y="3" width="6" height="6" rx="1.5"/><rect x="3" y="11" width="6" height="6" rx="1.5"/><rect x="11" y="11" width="6" height="6" rx="1.5"/></svg>
+        模型
+      </button>
+    </nav>
+
+    <div class="nav-group-label">业务</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="5" width="14" height="10" rx="2"/><path d="M7 9h6M7 12h3"/></svg>
+        推理引擎
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 5h12M4 10h12M4 15h8"/></svg>
+        元数据
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 3h6l3 3v11H6z"/><path d="M8 10h5M8 13h4"/></svg>
+        使用日志
+      </button>
+    </nav>
+
+    <div class="nav-group-label">管控</div>
+    <nav class="nav">
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 10.5l3 3 7-7"/></svg>
+        审批
+      </button>
+      <button class="nav-item active">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="10" cy="7" r="3"/><path d="M4 17c.8-3 3-4.5 6-4.5s5.2 1.5 6 4.5"/></svg>
+        用户
+      </button>
+      <button class="nav-item">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 3l6 2.5v4.5c0 3.5-2.5 6-6 7-3.5-1-6-3.5-6-7V5.5z"/></svg>
+        角色权限
+      </button>
+    </nav>
+
+    <div class="sidebar-foot">
+      <div class="account-name">系统管理员</div>
+      <div class="account-meta">admin · 本地</div>
+      <button class="logout nav-item">退出</button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="page-head">
+      <div>
+        <div class="crumb">管控 / 用户</div>
+        <h1 class="page-title">用户</h1>
+      </div>
+      <button class="btn btn-primary" id="btnNew">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 2v10M2 7h10"/></svg>
+        新建用户
+      </button>
+    </header>
+
+    <section class="panel">
+      <div class="toolbar">
+        <span class="toolbar-hint">OA 与本地账号统一台账管理，角色分配决定控制台内的权限范围</span>
+        <span class="toolbar-hint" id="countInfo"></span>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>工号</th>
+            <th>姓名</th>
+            <th>部门</th>
+            <th>来源</th>
+            <th>角色</th>
+            <th>状态</th>
+            <th>创建</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="table-foot"><span id="pageInfo"></span><span>账号登录标识为工号，不可修改</span></div>
+    </section>
+  </main>
+</div>
+
+<!-- Create / edit modal -->
+<div class="mask" id="userMask">
+  <div class="dialog" role="dialog" aria-modal="true">
+    <header class="dlg-head">
+      <div class="dlg-title" id="userTitle"></div>
+      <button class="icon-btn" data-close aria-label="关闭">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button>
+    </header>
+    <div class="dlg-body"><div class="grid" id="userGrid"></div></div>
+    <footer class="dlg-foot">
+      <button class="btn btn-ghost" data-close>取消</button>
+      <button class="btn btn-primary" id="userSave">保存</button>
+    </footer>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<div class="mask" id="delMask">
+  <div class="dialog confirm" role="dialog" aria-modal="true">
+    <header class="dlg-head"><div class="dlg-title">删除这个账号？</div></header>
+    <div class="dlg-body"><p id="delText"></p></div>
+    <footer class="dlg-foot">
+      <button class="btn btn-ghost" id="delCancel">取消</button>
+      <button class="btn btn-danger" id="delOk">确定</button>
+    </footer>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  const $ = (s) => document.querySelector(s);
+  const esc = (s) => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+  const ROLES = ['超级管理员', '模型运营', '审计员', '游客'];
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // Sample accounts covering OA and local sources; names are placeholders
+  const USERS = [
+    { id: 1, account: 'admin', name: '系统管理员', dept: '—', src: '本地', roles: ['超级管理员'], on: true, created: '2026-08-12 10:24', email: '' },
+    { id: 2, account: 'p-shenchangcin', name: '示例成员 A', dept: '应用软件部', src: 'OA', roles: ['超级管理员', '模型运营'], on: true, created: '2026-08-14 09:10', email: 'p-shenchangcin@xiaomi.com' },
+    { id: 3, account: 'wangqiang6', name: '示例成员 B', dept: '应用软件部', src: 'OA', roles: ['模型运营'], on: true, created: '2026-09-02 16:38', email: 'wangqiang6@xiaomi.com' },
+    { id: 4, account: 'ops-zhang', name: '示例成员 C', dept: '—', src: '本地', roles: ['模型运营'], on: true, created: '2026-10-18 11:05', email: '' },
+    { id: 5, account: 'audit-liu', name: '示例成员 D', dept: '—', src: '本地', roles: ['审计员'], on: false, created: '2026-11-03 14:47', email: '' }
+  ];
+  let nextId = 100;
+  let editing = null;      // user object when editing, null when creating
+  let pendingDel = null;
+  let formRoles = [];      // roles currently selected in the open form
+  let formOn = true;       // status in edit form
+
+  const isSuper = (u) => u.roles.includes('超级管理员');
+
+  // ---------- List ----------
+  function renderList() {
+    $('#countInfo').textContent = `共 ${USERS.length} 个账号`;
+    $('#pageInfo').textContent = `共 ${USERS.length} 条 · 1 页`;
+    if (!USERS.length) {
+      $('#rows').innerHTML = `<tr><td colspan="8"><div class="empty-note">暂无账号，点击右上角「新建用户」添加</div></td></tr>`;
+      return;
+    }
+    $('#rows').innerHTML = USERS.map(u => `
+      <tr>
+        <td class="num strong">${esc(u.account)}</td>
+        <td>${esc(u.name)}</td>
+        <td class="muted">${esc(u.dept)}</td>
+        <td><span class="src ${u.src === 'OA' ? 'oa' : 'local'}">${u.src}</span></td>
+        <td>${u.roles.map(r => `<span class="role">${esc(r)}</span>`).join('') || '<span class="muted">未分配</span>'}</td>
+        <td><span class="tag ${u.on ? 'on' : 'off'}">${u.on ? '启用' : '停用'}</span></td>
+        <td class="num muted">${esc(u.created)}</td>
+        <td><div class="ops">
+          <button class="btn-link" data-edit="${u.id}">编辑</button>
+          <button class="btn-link danger" data-del="${u.id}" ${isSuper(u) ? 'disabled title="超级管理员账号受保护"' : ''}>删除</button>
+        </div></td>
+      </tr>`).join('');
+  }
+
+  // ---------- Form ----------
+  function roleBoxHTML() {
+    const chips = formRoles.map(r =>
+      `<span class="role">${esc(r)}<button type="button" class="role-x" data-remove-role="${esc(r)}" aria-label="移除角色">×</button></span>`).join('');
+    const rest = ROLES.filter(r => !formRoles.includes(r));
+    const add = rest.length
+      ? `<select class="role-add" id="roleAdd"><option value="">+ 添加角色</option>${rest.map(r => `<option>${r}</option>`).join('')}</select>`
+      : '';
+    return `<div class="role-box" id="roleBox">${chips}${add}</div>`;
+  }
+
+  function fieldHTML(key, label, { req = false, type = 'text', value = '', readonly = false, placeholder = '', hint = '', full = false } = {}) {
+    return `
+      <div class="f ${full ? 'full' : ''}" data-key="${key}">
+        <label>${req ? '<span class="req">*</span>' : ''}${label}</label>
+        <input class="field" id="ff-${key}" type="${type}" value="${esc(value)}" placeholder="${esc(placeholder)}" ${readonly ? 'readonly' : ''} autocomplete="off">
+        ${hint ? `<span class="hint">${hint}</span>` : ''}
+        <span class="err"></span>
+      </div>`;
+  }
+
+  function openCreate() {
+    editing = null;
+    formRoles = [];
+    $('#userTitle').textContent = '新建用户';
+    $('#userGrid').innerHTML = [
+      fieldHTML('account', '账号（工号）', { req: true, placeholder: '登录标识，全局唯一', hint: '账号唯一，创建后不可修改' }),
+      fieldHTML('name', '显示名', { req: true, placeholder: '人员姓名' }),
+      fieldHTML('email', '邮箱', { placeholder: '用于通知与联系', hint: 'OA 账号为 工号@xiaomi.com' }),
+      fieldHTML('pwd', '初始密码', { req: true, type: 'password', placeholder: '设置初始登录密码' }),
+      `<div class="f full"><label>角色</label>${roleBoxHTML()}<span class="hint">可创建后补配；不填则无任何权限</span></div>`
+    ].join('');
+    $('#userSave').textContent = '保存';
+    $('#userMask').classList.add('open');
+  }
+
+  function openEdit(u) {
+    editing = u;
+    formRoles = [...u.roles];
+    formOn = u.on;
+    $('#userTitle').textContent = '编辑用户';
+    $('#userGrid').innerHTML = [
+      fieldHTML('account', '账号（工号）', { value: u.account, readonly: true, hint: '工号为登录标识，不可修改' }),
+      fieldHTML('src', '来源', { value: u.src, readonly: true }),
+      fieldHTML('name', '显示名', { req: true, value: u.name }),
+      fieldHTML('email', '邮箱', { value: u.email, placeholder: '未填写' }),
+      fieldHTML('created', '创建时间', { value: u.created, readonly: true }),
+      fieldHTML('pwd', '重置密码', { type: 'password', placeholder: '留空则保持原密码不变', full: false }),
+      `<div class="f"><label>状态</label>
+        <div class="seg" id="statusSeg">
+          <button type="button" data-on="1" class="${formOn ? 'on' : ''}">启用</button>
+          <button type="button" data-on="0" class="${!formOn ? 'on' : ''}">停用</button>
+        </div>
+        <span class="hint">停用后账号不可登录，台账与历史保留</span></div>`,
+      `<div class="f full"><label>角色</label>${roleBoxHTML()}<span class="hint">标签可增删，保存后即时生效</span></div>`
+    ].join('');
+    $('#userSave').textContent = '保存';
+    $('#userMask').classList.add('open');
+  }
+
+  function closeUser() { $('#userMask').classList.remove('open'); }
+
+  function setErr(key, msg) {
+    const el = document.querySelector(`#userGrid [data-key="${key}"]`);
+    if (!el) return;
+    el.classList.toggle('invalid', !!msg);
+    el.querySelector('.err').textContent = msg || '';
+  }
+
+  function saveUser() {
+    let bad = 0;
+    const v = (k) => ($(`#ff-${k}`)?.value ?? '').trim();
+    const check = (k, msg) => { setErr(k, msg); if (msg) bad++; };
+
+    if (!editing) {
+      const acc = v('account');
+      check('account', !acc ? '请输入账号（工号）' : USERS.some(u => u.account === acc) ? '该工号已存在' : null);
+      check('name', !v('name') ? '请输入显示名' : null);
+      check('email', v('email') && !EMAIL_RE.test(v('email')) ? '邮箱格式不正确' : null);
+      check('pwd', !v('pwd') ? '请设置初始密码' : null);
+      if (bad) return;
+      USERS.push({
+        id: nextId++, account: acc, name: v('name'), dept: '—', src: '本地',
+        roles: [...formRoles], on: true, email: v('email'), created: nowStr()
+      });
+      closeUser();
+      renderList();
+      toast('已创建账号');
+    } else {
+      check('name', !v('name') ? '请输入显示名' : null);
+      check('email', v('email') && !EMAIL_RE.test(v('email')) ? '邮箱格式不正确' : null);
+      if (bad) return;
+      Object.assign(editing, { name: v('name'), email: v('email'), roles: [...formRoles], on: formOn });
+      closeUser();
+      renderList();
+      toast(v('pwd') ? '已保存，并重置密码' : '已保存');
+    }
+  }
+
+  // Role tags: remove via ×, add via select (delegated inside the form)
+  $('#userGrid').addEventListener('click', e => {
+    const x = e.target.closest('[data-remove-role]');
+    if (x) {
+      formRoles = formRoles.filter(r => r !== x.dataset.removeRole);
+      refreshRoleBox();
+      return;
+    }
+    const seg = e.target.closest('#statusSeg button');
+    if (seg) {
+      formOn = seg.dataset.on === '1';
+      $$('#statusSeg button').forEach(b => b.classList.toggle('on', b === seg));
+    }
+  });
+  $('#userGrid').addEventListener('change', e => {
+    if (e.target.id === 'roleAdd' && e.target.value) {
+      formRoles.push(e.target.value);
+      refreshRoleBox();
+    }
+  });
+  function $$(s) { return [...document.querySelectorAll(s)]; }
+  function refreshRoleBox() {
+    const box = document.querySelector('#roleBox');
+    box.outerHTML = roleBoxHTML();
+  }
+
+  // ---------- Delete ----------
+  function openDelete(u) {
+    pendingDel = u;
+    $('#delText').textContent = `账号「${u.account}」（${u.name}）将被删除。`;
+    $('#delMask').classList.add('open');
+  }
+
+  $('#delOk').onclick = () => {
+    if (!pendingDel) return;
+    const idx = USERS.indexOf(pendingDel);
+    if (idx >= 0) USERS.splice(idx, 1);
+    pendingDel = null;
+    $('#delMask').classList.remove('open');
+    renderList();
+    toast('已删除账号');
+  };
+  $('#delCancel').onclick = () => { pendingDel = null; $('#delMask').classList.remove('open'); };
+  $('#delMask').addEventListener('click', e => { if (e.target.id === 'delMask') $('#delCancel').click(); });
+
+  // ---------- Wiring ----------
+  $('#btnNew').onclick = openCreate;
+  $('#userSave').onclick = saveUser;
+  document.querySelectorAll('[data-close]').forEach(b => b.onclick = closeUser);
+  $('#userMask').addEventListener('click', e => { if (e.target.id === 'userMask') closeUser(); });
+  $('#rows').addEventListener('click', e => {
+    const ed = e.target.closest('[data-edit]');
+    if (ed) return openEdit(USERS.find(u => u.id === Number(ed.dataset.edit)));
+    const dl = e.target.closest('[data-del]');
+    if (dl && !dl.disabled) openDelete(USERS.find(u => u.id === Number(dl.dataset.del)));
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') { closeUser(); $('#delCancel').click(); }
+  });
+
+  function nowStr() {
+    const d = new Date(), p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
+  function toast(msg) {
+    const t = $('#toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(toast._t);
+    toast._t = setTimeout(() => t.classList.remove('show'), 2400);
+  }
+
+  // ---------- Sidebar navigation (shared across all pages) ----------
+  const NAV_PAGES = {
+    '模型': '运营平台-模型列表设计.html',
+    '推理引擎': '运营平台-推理引擎设计.html',
+    '元数据': '运营平台-元数据设计.html',
+    '使用日志': '运营平台-使用日志设计.html',
+    '审批': '运营平台-审批设计.html',
+    '用户': '运营平台-用户设计.html',
+    '角色权限': '运营平台-角色权限设计.html'
+  };
+  document.querySelectorAll('.sidebar .nav-item').forEach(btn => {
+    const target = NAV_PAGES[btn.textContent.trim()];
+    if (!target) return;
+    btn.addEventListener('click', () => {
+      if (!location.pathname.endsWith(target)) location.href = target;
+    });
+  });
+
+  renderList();
+</script>
+</body>
+</html>
