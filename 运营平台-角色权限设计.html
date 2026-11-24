@@ -38,7 +38,7 @@
   button:disabled { cursor: not-allowed; opacity: 0.45; }
 
   /* ---------- Shell ---------- */
-  .app { display: flex; height: 100vh; min-height: 620px; }
+  .app { display: flex; height: 100vh; min-height: 620px; overflow: hidden; }
   .sidebar { width: 200px; flex: none; background: var(--color-bg-sidebar); border-right: 1px solid var(--color-border); padding: 20px 12px; display: flex; flex-direction: column; }
   .brand { display: flex; align-items: center; gap: 10px; padding: 4px 8px 20px; }
   .brand-mark { width: 28px; height: 28px; border-radius: var(--radius-md); background: var(--color-primary); color: #fff; display: grid; place-items: center; font-weight: 600; font-size: 13px; }
@@ -55,7 +55,14 @@
   .account-meta { font-size: 12px; color: var(--color-text-tertiary); }
   .logout { margin-top: 10px; font-size: 13px; color: var(--color-text-secondary); height: 28px; padding: 0 12px; }
 
-  .main { flex: 1; min-width: 0; overflow-y: auto; padding: 32px 48px 48px; }
+  .main { flex: 1; min-width: 0; height: 100vh; overflow: hidden; display: flex; flex-direction: column; padding: 32px 48px 32px; }
+  #detail { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .detail-body { flex: 1; min-height: 0; overflow-y: auto; scrollbar-width: thin; scrollbar-color: #DDE1E7 transparent; }
+  .detail-body::-webkit-scrollbar { width: 6px; }
+  .detail-body::-webkit-scrollbar-track { background: transparent; }
+  .detail-body::-webkit-scrollbar-thumb { background: #DDE1E7; border-radius: 999px; }
+  .detail-body::-webkit-scrollbar-thumb:hover { background: #C9CED6; }
+  .detail-head, .count-line, .detail-foot, .notice, .page-head, .role-tabs { flex: none; }
   .page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 20px; }
   .crumb { font-size: 12px; color: var(--color-text-tertiary); margin-bottom: 6px; }
   .page-title { font-size: 20px; font-weight: 600; line-height: 28px; }
@@ -70,7 +77,11 @@
   .btn-danger:hover { background: #D03A3F; }
 
   /* ---------- Layout ---------- */
-  .split { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; }
+  .role-tabs { display: flex; gap: 28px; border-bottom: 1px solid var(--color-border-row); margin-bottom: 20px; overflow: hidden; }
+  .role-tab { height: 40px; font-size: 15px; color: var(--color-text-tertiary); position: relative; white-space: nowrap; }
+  .role-tab:hover { color: var(--color-text-secondary); }
+  .role-tab.on { color: var(--color-text-primary); font-weight: 600; }
+  .role-tab.on::after { content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px; background: var(--color-primary); border-radius: 2px; }
   .panel { background: var(--color-surface); border-radius: var(--radius-xl); box-shadow: var(--shadow-card); overflow: hidden; }
 
   /* Role list */
@@ -102,21 +113,18 @@
   .domain + .domain { border-top: 1px solid var(--color-border-row); margin-top: 12px; padding-top: 12px; }
   .domain-title { font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
   .domain-title span { font-size: 12px; color: var(--color-text-tertiary); font-weight: 400; }
-  .perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 16px; padding-bottom: 8px; }
-  .perm { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer; }
+  .perm-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 16px; padding-bottom: 8px; }
+  @media (min-width: 1100px) { .perm-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+  @media (min-width: 1400px) { .perm-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+  .perm { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: var(--radius-md); cursor: pointer; min-width: 0; }
   .perm:hover { background: #F7F8FA; }
   .perm.disabled { cursor: default; }
   .perm.disabled:hover { background: none; }
   .perm input { width: 16px; height: 16px; accent-color: var(--color-primary); margin: 0; flex: none; cursor: pointer; }
   .perm input:disabled { cursor: not-allowed; }
-  .perm-text { min-width: 0; flex: 1; }
-  .perm-name { font-size: 13px; }
-  .perm-code { font-size: 11px; color: var(--color-text-tertiary); font-family: ui-monospace, Menlo, Consolas, monospace; }
-  .type { height: 18px; padding: 0 6px; border-radius: 4px; font-size: 11px; display: inline-flex; align-items: center; flex: none; }
-  .type.read { background: #F0F1F3; color: var(--color-text-secondary); }
-  .type.write { background: #EAF2FF; color: #2F7BFF; }
-  .type.change { background: #EDE9FE; color: #6D28D9; }
-  .type.high { background: var(--color-danger-soft); color: var(--color-danger); }
+  .perm-text { min-width: 0; flex: 1; display: flex; align-items: baseline; gap: 8px; white-space: nowrap; overflow: hidden; }
+  .perm-name { font-size: 13px; color: var(--color-text-primary); flex: none; }
+  .perm-code { font-size: 11px; color: var(--color-text-tertiary); font-family: ui-monospace, Menlo, Consolas, monospace; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 
   .detail-foot { padding: 16px 24px; border-top: 1px solid var(--color-border-row); display: flex; justify-content: space-between; align-items: center; gap: 12px; font-size: 12px; color: var(--color-text-tertiary); }
 
@@ -218,13 +226,8 @@
       </button>
     </header>
 
-    <div class="split">
-      <section class="panel">
-        <div class="role-list" id="roleList"></div>
-      </section>
-
-      <section class="panel" id="detail"></section>
-    </div>
+    <div class="role-tabs" id="roleList"></div>
+    <section class="panel" id="detail"></section>
   </main>
 </div>
 
@@ -293,7 +296,6 @@
     { name: '审计', perms: [
       ['audit.read', '查看审计', 'read']] }
   ];
-  const TYPE_LABEL = { read: '只读', write: '写', change: '变更', high: '高危' };
   const ALL_CODES = DOMAINS.flatMap(d => d.perms.map(p => p[0]));
   const modelOperatorPerms = ALL_CODES.filter(c =>
     c.startsWith('model.') || c.startsWith('engine.') || c === 'device.read' || c === 'approval.read' || c === 'audit.read' ||
@@ -328,14 +330,7 @@
   // ---------- Render ----------
   function renderList() {
     $('#roleList').innerHTML = ROLES.map(r => `
-      <button class="role-item ${r.id === selectedId ? 'on' : ''}" data-role="${r.id}">
-        <div class="role-item-top">
-          <span class="role-name">${esc(r.name)}</span>
-          <span class="builtin ${r.builtin ? '' : 'custom'}">${r.builtin ? '内置' : '自建'}</span>
-        </div>
-        <div class="role-desc">${esc(r.desc)}</div>
-        <div class="role-code">${esc(r.code)} · ${r.perms.length} 项权限</div>
-      </button>`).join('');
+      <button class="role-tab ${r.id === selectedId ? 'on' : ''}" data-role="${r.id}">${esc(r.name)}</button>`).join('');
   }
 
   function renderDetail() {
@@ -349,14 +344,13 @@
         <div class="domain">
           <div class="domain-title">${d.name}<span>${n} / ${d.perms.length}</span></div>
           <div class="perm-grid">
-            ${d.perms.map(([code, name, type]) => `
+            ${d.perms.map(([code, name]) => `
               <label class="perm ${locked ? 'disabled' : ''}">
                 <input type="checkbox" data-perm="${code}" ${grant(code) ? 'checked' : ''} ${locked ? 'disabled' : ''}>
                 <span class="perm-text">
                   <span class="perm-name">${name}</span>
-                  <div class="perm-code">${code}</div>
+                  <span class="perm-code">${code}</span>
                 </span>
-                <span class="type ${type}">${TYPE_LABEL[type]}</span>
               </label>`).join('')}
           </div>
         </div>`;
@@ -382,7 +376,7 @@
         <span class="dirty ${dirty ? 'show' : ''}">有未保存的修改</span>
       </div>
 
-      ${domainsHTML}
+      <div class="detail-body">${domainsHTML}</div>
 
       <div class="detail-foot">
         <span>权限点彼此独立，不自动继承；保存按角色整体提交</span>
